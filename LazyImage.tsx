@@ -44,13 +44,15 @@ export const LazyImage: React.FC<LazyImageProps> = ({ src, alt, className, onErr
     return (
         <div ref={imgRef} className={className} onClick={onClick}>
             {!imageLoaded && (
-                <div className="absolute inset-0 bg-slate-200 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 animate-pulse">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                </div>
             )}
             {imageSrc && (
                 <img
                     src={imageSrc}
                     alt={alt}
-                    className={`${className} ${imageLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
+                    className={`${className} ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} transition-all duration-500 ease-out`}
                     onLoad={() => setImageLoaded(true)}
                     onError={onError}
                 />

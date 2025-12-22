@@ -95,7 +95,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     const hasPhoto = Boolean(profile?.primaryPhoto || profile?.photo);
 
     return (
-        <div className={`${sizeClasses[size]} rounded-full overflow-hidden border border-slate-100 ${className} relative`}>
+        <div className={`${sizeClasses[size]} rounded-full overflow-hidden border-4 border-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ${className} relative ring-2 ring-slate-200 hover:ring-orange-400`}>
             <AvatarInner
                 profile={profile}
                 hasPhoto={hasPhoto}
