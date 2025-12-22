@@ -139,42 +139,48 @@ const Shop = ({ user, showToast, onCartChange }) => {
     };
 
     return (
-        <div className="p-4">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold flex items-center gap-2 text-slate-900">
-                    <ShoppingBag className="text-orange-500"/> Shop
+        <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-extrabold flex items-center gap-3 text-slate-900 drop-shadow-sm">
+                    <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-2 rounded-xl shadow-lg">
+                        <ShoppingBag className="text-white" size={28}/>
+                    </div>
+                    Shop
                 </h2>
                 <button 
                     onClick={() => setShowCart(true)}
-                    className="relative p-2 bg-orange-500 text-white rounded-full shadow-lg hover:bg-orange-600 transition-colors"
+                    className="relative p-3 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white rounded-2xl shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300"
                 >
-                    <ShoppingCart size={20} />
+                    <ShoppingCart size={22} />
                     {cartCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg animate-bounce border-2 border-white">
                             {cartCount}
                         </span>
                     )}
                 </button>
             </div>
             
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-                <ShoppingCart className="text-orange-600 shrink-0 mt-0.5" size={20} />
-                <p className="text-xs text-orange-900 leading-relaxed font-medium">Official merchandise and tools. All proceeds support the platform and LGBT trade charities.</p>
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-2xl p-5 mb-6 flex items-start gap-3 shadow-lg">
+                <div className="bg-orange-500 p-2 rounded-lg">
+                    <ShoppingCart className="text-white shrink-0" size={20} />
+                </div>
+                <p className="text-sm text-orange-900 leading-relaxed font-semibold">Official merchandise and tools. All proceeds support the platform and LGBT trade charities.</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 animate-stagger">
+            <div className="grid grid-cols-2 gap-5 animate-stagger">
                 {products.map(p => (
-                    <div key={p.id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col group hover:shadow-xl hover:border-orange-300 transition-all duration-300 transform hover:-translate-y-1 active:scale-95">
-                        <div className="h-32 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center text-5xl group-hover:scale-110 transition-transform duration-500">
+                    <div key={p.id} className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 overflow-hidden flex flex-col group hover:shadow-2xl hover:border-orange-400 transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 active:scale-95">
+                        <div className="h-36 bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 flex items-center justify-center text-6xl group-hover:scale-125 transition-transform duration-700 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent animate-shimmer"></div>
                             {p.image}
                         </div>
-                        <div className="p-3 flex-1 flex flex-col">
-                            <h3 className="font-bold text-sm mb-1 text-slate-800">{p.name}</h3>
-                            <p className="text-slate-500 text-xs mb-3 font-mono">£{p.price}.00</p>
+                        <div className="p-4 flex-1 flex flex-col">
+                            <h3 className="font-extrabold text-sm mb-2 text-slate-800">{p.name}</h3>
+                            <p className="text-orange-600 text-base mb-4 font-bold">£{p.price}.00</p>
                             <div className="mt-auto">
                                 <Button 
                                     variant="secondary" 
-                                    className="w-full py-2 text-xs h-8" 
+                                    className="w-full py-2.5 text-sm" 
                                     onClick={() => addToCart(p)}
                                 >
                                     Add to Cart
@@ -187,50 +193,50 @@ const Shop = ({ user, showToast, onCartChange }) => {
 
             {/* Cart Modal */}
             {showCart && (
-                <div className="fixed inset-0 bg-black/80 z-[100] flex items-end sm:items-center justify-center">
-                    <div className="bg-white w-full sm:w-[400px] h-[80vh] sm:h-auto sm:max-h-[80vh] sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl relative flex flex-col">
-                        <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-900 text-white">
-                            <h3 className="text-lg font-bold">Shopping Cart</h3>
-                            <button onClick={() => setShowCart(false)}>
-                                <X className="w-5 h-5" />
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center">
+                    <div className="bg-white w-full sm:w-[450px] h-[85vh] sm:h-auto sm:max-h-[85vh] sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl relative flex flex-col border-4 border-orange-200">
+                        <div className="p-5 border-b-2 border-slate-200 flex justify-between items-center bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white">
+                            <h3 className="text-xl font-extrabold">Shopping Cart</h3>
+                            <button onClick={() => setShowCart(false)} className="p-2 hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-110">
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto p-4">
+                        <div className="flex-1 overflow-y-auto p-5 bg-gradient-to-br from-slate-50 to-slate-100">
                             {cart.length === 0 ? (
-                                <div className="text-center py-10 text-slate-400">
-                                    <ShoppingCart size={48} className="mx-auto mb-2 opacity-50" />
-                                    <p>Your cart is empty</p>
+                                <div className="text-center py-16 text-slate-400">
+                                    <ShoppingCart size={64} className="mx-auto mb-4 opacity-30" />
+                                    <p className="text-lg font-semibold">Your cart is empty</p>
                                 </div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     {cart.map(item => (
-                                        <div key={item.id} className="bg-slate-50 rounded-lg p-3 flex items-center gap-3">
-                                            <div className="text-3xl">{item.image}</div>
+                                        <div key={item.id} className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-lg border-2 border-slate-200 hover:border-orange-400 transition-all duration-300">
+                                            <div className="text-4xl">{item.image}</div>
                                             <div className="flex-1">
-                                                <h4 className="font-bold text-sm">{item.name}</h4>
-                                                <p className="text-xs text-slate-500">£{item.price}.00</p>
+                                                <h4 className="font-bold text-base">{item.name}</h4>
+                                                <p className="text-sm text-orange-600 font-bold">£{item.price}.00</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <button 
                                                     onClick={() => updateQuantity(item.id, -1)}
-                                                    className="w-6 h-6 rounded bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold"
+                                                    className="w-8 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold text-lg transition-all duration-300 hover:scale-110"
                                                 >
                                                     -
                                                 </button>
-                                                <span className="w-8 text-center font-bold">{item.quantity}</span>
+                                                <span className="w-10 text-center font-bold text-lg">{item.quantity}</span>
                                                 <button 
                                                     onClick={() => updateQuantity(item.id, 1)}
-                                                    className="w-6 h-6 rounded bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold"
+                                                    className="w-8 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold text-lg transition-all duration-300 hover:scale-110"
                                                 >
                                                     +
                                                 </button>
                                             </div>
                                             <button 
                                                 onClick={() => removeFromCart(item.id)}
-                                                className="text-red-500 hover:text-red-700"
+                                                className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-all duration-300"
                                             >
-                                                <X size={18} />
+                                                <X size={20} />
                                             </button>
                                         </div>
                                     ))}
@@ -239,13 +245,13 @@ const Shop = ({ user, showToast, onCartChange }) => {
                         </div>
                         
                         {cart.length > 0 && (
-                            <div className="p-4 border-t border-slate-200 bg-white">
+                            <div className="p-5 border-t-2 border-slate-200 bg-white">
                                 <div className="flex justify-between items-center mb-4">
-                                    <span className="font-bold text-lg">Total:</span>
-                                    <span className="font-bold text-2xl text-orange-600">£{cartTotal}.00</span>
+                                    <span className="font-bold text-xl text-slate-700">Total:</span>
+                                    <span className="font-extrabold text-3xl text-orange-600">£{cartTotal}.00</span>
                                 </div>
-                                <Button onClick={handleCheckout} variant="secondary" className="w-full py-3">
-                                    Checkout
+                                <Button onClick={handleCheckout} variant="secondary" className="w-full py-4 text-lg">
+                                    Checkout Now
                                 </Button>
                             </div>
                         )}
