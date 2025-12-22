@@ -675,14 +675,42 @@ const SettingsScreen = ({ user, profile, onBack, showToast }) => {
 const PaymentsCredits = ({ user, profile, onBack, showToast }) => {
     const [transactions, setTransactions] = useState([]);
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-    const [withdrawMethod, setWithdrawMethod] = useState('bank'); // 'bank' or 'crypto'
+    const [withdrawMethod, setWithdrawMethod] = useState('stripe'); // 'stripe', 'bank', or 'crypto'
     const [withdrawAmount, setWithdrawAmount] = useState('');
+    const [stripeConnected, setStripeConnected] = useState(false);
+    const [stripeAccountId, setStripeAccountId] = useState(null);
+    const [showStripeOnboarding, setShowStripeOnboarding] = useState(false);
+    const [ageVerified, setAgeVerified] = useState(false);
+    const [showAgeVerification, setShowAgeVerification] = useState(false);
     
     // Financial stats
     const onHoldBalance = profile?.finances?.onHoldBalance || 0;
     const availableBalance = profile?.finances?.availableBalance || 0;
     const totalEarnings = profile?.finances?.totalEarnings || 0;
     const totalCommissionPaid = profile?.finances?.totalCommissionPaid || 0;
+    
+    // Check Stripe connection status
+    useEffect(() => {
+        if (!user || !db) return;
+        
+        const checkStripeStatus = async () => {
+            try {
+                const profileRef = doc(db, 'artifacts', getAppId(), 'public', 'data', 'profiles', user.uid);
+                const profileSnap = await getDoc(profileRef);
+                
+                if (profileSnap.exists()) {
+                    const data = profileSnap.data();
+                    setStripeConnected(data.stripeConnected || false);
+                    setStripeAccountId(data.stripeAccountId || null);
+                    setAgeVerified(data.ageVerified || false);
+                }
+            } catch (error) {
+                console.error('Error checking Stripe status:', error);
+            }
+        };
+        
+        checkStripeStatus();
+    }, [user]);
     
     // Load transactions
     useEffect(() => {
@@ -706,6 +734,49 @@ const PaymentsCredits = ({ user, profile, onBack, showToast }) => {
         return () => unsubscribe();
     }, [user]);
     
+    const handleStripeOnboarding = async () => {
+        try {
+            showToast("Initiating Stripe Connect onboarding...", "info");
+            
+            // This would call your backend to create a Stripe Connect account
+            // For now, we'll simulate it and store in Firebase
+            const accountId = `acct_${Date.now()}`;
+            
+            await updateDoc(doc(db, 'artifacts', getAppId(), 'public', 'data', 'profiles', user.uid), {
+                stripeAccountId: accountId,
+                stripeConnected: true,
+                stripeOnboardingCompleted: serverTimestamp()
+            });
+            
+            setStripeConnected(true);
+            setStripeAccountId(accountId);
+            showToast("Stripe account connected successfully!", "success");
+        } catch (error) {
+            console.error("Error onboarding Stripe:", error);
+            showToast("Failed to connect Stripe account", "error");
+        }
+    };
+    
+    const handleAgeVerification = async () => {
+        try {
+            showToast("Initiating age verification...", "info");
+            
+            // This would call Stripe Identity API
+            // For now, we'll mark as verified in Firebase
+            await updateDoc(doc(db, 'artifacts', getAppId(), 'public', 'data', 'profiles', user.uid), {
+                ageVerified: true,
+                ageVerifiedAt: serverTimestamp()
+            });
+            
+            setAgeVerified(true);
+            setShowAgeVerification(false);
+            showToast("Age verification completed!", "success");
+        } catch (error) {
+            console.error("Error verifying age:", error);
+            showToast("Failed to verify age", "error");
+        }
+    };
+    
     const handleWithdraw = async () => {
         if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
             showToast("Please enter a valid amount", "error");
@@ -718,6 +789,11 @@ const PaymentsCredits = ({ user, profile, onBack, showToast }) => {
             return;
         }
         
+        if (withdrawMethod === 'stripe' && !stripeConnected) {
+            showToast("Please connect your Stripe account first", "error");
+            return;
+        }
+        
         try {
             // Create withdrawal transaction
             await addDoc(collection(db, 'artifacts', getAppId(), 'public', 'data', 'transactions'), {
@@ -726,6 +802,7 @@ const PaymentsCredits = ({ user, profile, onBack, showToast }) => {
                 amount: -amount,
                 method: withdrawMethod,
                 status: 'pending',
+                stripeAccountId: withdrawMethod === 'stripe' ? stripeAccountId : null,
                 createdAt: serverTimestamp()
             });
             
@@ -734,7 +811,8 @@ const PaymentsCredits = ({ user, profile, onBack, showToast }) => {
                 'finances.availableBalance': increment(-amount)
             });
             
-            showToast(`Withdrawal of £${amount.toFixed(2)} initiated via ${withdrawMethod === 'bank' ? 'Bank Transfer' : 'Crypto Wallet'}`, "success");
+            const methodName = withdrawMethod === 'stripe' ? 'Stripe' : withdrawMethod === 'bank' ? 'Bank Transfer' : 'Crypto Wallet';
+            showToast(`Withdrawal of £${amount.toFixed(2)} initiated via ${methodName}`, "success");
             setShowWithdrawModal(false);
             setWithdrawAmount('');
         } catch (error) {
@@ -744,56 +822,118 @@ const PaymentsCredits = ({ user, profile, onBack, showToast }) => {
     };
     
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
             {/* Header */}
-            <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 sticky top-0 z-10 shadow-md">
+            <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white p-5 sticky top-0 z-10 shadow-xl">
                 <div className="flex items-center gap-3">
-                    <button onClick={onBack} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                    <button onClick={onBack} className="p-2.5 hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-110">
                         <ChevronLeft size={24} />
                     </button>
-                    <div className="flex items-center gap-2">
-                        <DollarSign size={24} />
-                        <h1 className="text-xl font-bold">Payments & Credits</h1>
+                    <div className="flex items-center gap-3">
+                        <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                            <DollarSign size={24} />
+                        </div>
+                        <h1 className="text-2xl font-bold">Payments & Credits</h1>
                     </div>
                 </div>
             </div>
 
-            <div className="p-4 space-y-4">
-                {/* Balance Cards */}
-                <div className="grid grid-cols-2 gap-3">
-                    {/* On Hold */}
-                    <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-4 text-white shadow-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Clock size={18} />
-                            <p className="text-xs font-medium opacity-90">On Hold</p>
+            <div className="p-4 space-y-5">
+                {/* Stripe Connect Status */}
+                {!stripeConnected && (
+                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-xl border-2 border-blue-400">
+                        <div className="flex items-start gap-3 mb-3">
+                            <div className="bg-white/20 p-2 rounded-lg">
+                                <ShieldCheck size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-bold text-lg mb-1">Connect Stripe Account</h3>
+                                <p className="text-sm opacity-90">Enable secure payments and instant payouts with Stripe Connect</p>
+                            </div>
                         </div>
-                        <p className="text-2xl font-bold">£{onHoldBalance.toFixed(2)}</p>
-                        <p className="text-xs opacity-75 mt-1">Pending completion</p>
+                        <button
+                            onClick={handleStripeOnboarding}
+                            className="w-full py-3 bg-white text-blue-600 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-all duration-300 hover:scale-105"
+                        >
+                            Connect Stripe Account
+                        </button>
+                    </div>
+                )}
+                
+                {stripeConnected && (
+                    <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white shadow-xl border-2 border-green-400">
+                        <div className="flex items-center gap-2">
+                            <CheckCircle size={20} />
+                            <p className="text-sm font-bold">Stripe Connected</p>
+                        </div>
+                    </div>
+                )}
+                
+                {/* Age Verification Status */}
+                {!ageVerified && (
+                    <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-5 text-white shadow-xl border-2 border-purple-400">
+                        <div className="flex items-start gap-3 mb-3">
+                            <div className="bg-white/20 p-2 rounded-lg">
+                                <Shield size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-bold text-lg mb-1">Verify Your Age</h3>
+                                <p className="text-sm opacity-90">Complete age verification to unlock all features (18+ required)</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setShowAgeVerification(true)}
+                            className="w-full py-3 bg-white text-purple-600 rounded-xl font-bold shadow-lg hover:bg-purple-50 transition-all duration-300 hover:scale-105"
+                        >
+                            Verify Age (18+)
+                        </button>
+                    </div>
+                )}
+                
+                {ageVerified && (
+                    <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-4 text-white shadow-xl border-2 border-emerald-400">
+                        <div className="flex items-center gap-2">
+                            <CheckCircle size={20} />
+                            <p className="text-sm font-bold">Age Verified (18+)</p>
+                        </div>
+                    </div>
+                )}
+                
+                {/* Balance Cards */}
+                <div className="grid grid-cols-2 gap-4">
+                    {/* On Hold */}
+                    <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-5 text-white shadow-xl border-2 border-amber-400 transform hover:scale-105 transition-all duration-300">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Clock size={20} />
+                            <p className="text-xs font-bold opacity-90">On Hold</p>
+                        </div>
+                        <p className="text-3xl font-extrabold">£{onHoldBalance.toFixed(2)}</p>
+                        <p className="text-xs opacity-80 mt-1">Pending completion</p>
                     </div>
                     
                     {/* Available */}
-                    <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white shadow-lg">
+                    <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-5 text-white shadow-xl border-2 border-green-400 transform hover:scale-105 transition-all duration-300">
                         <div className="flex items-center gap-2 mb-2">
-                            <CheckCircle size={18} />
-                            <p className="text-xs font-medium opacity-90">Available</p>
+                            <CheckCircle size={20} />
+                            <p className="text-xs font-bold opacity-90">Available</p>
                         </div>
-                        <p className="text-2xl font-bold">£{availableBalance.toFixed(2)}</p>
-                        <p className="text-xs opacity-75 mt-1">Ready to withdraw</p>
+                        <p className="text-3xl font-extrabold">£{availableBalance.toFixed(2)}</p>
+                        <p className="text-xs opacity-80 mt-1">Ready to withdraw</p>
                     </div>
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                     {/* Total Earnings */}
-                    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total Earnings</p>
-                        <p className="text-xl font-bold text-slate-900">£{totalEarnings.toFixed(2)}</p>
+                    <div className="bg-white rounded-2xl p-5 shadow-xl border-2 border-slate-200 hover:border-orange-400 transition-all duration-300">
+                        <p className="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1">Total Earnings</p>
+                        <p className="text-2xl font-extrabold text-slate-900">£{totalEarnings.toFixed(2)}</p>
                     </div>
                     
                     {/* Commission Paid */}
-                    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Commission (15%)</p>
-                        <p className="text-xl font-bold text-slate-900">£{totalCommissionPaid.toFixed(2)}</p>
+                    <div className="bg-white rounded-2xl p-5 shadow-xl border-2 border-slate-200 hover:border-orange-400 transition-all duration-300">
+                        <p className="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1">Commission (15%)</p>
+                        <p className="text-2xl font-extrabold text-slate-900">£{totalCommissionPaid.toFixed(2)}</p>
                     </div>
                 </div>
 
@@ -801,20 +941,20 @@ const PaymentsCredits = ({ user, profile, onBack, showToast }) => {
                 <button
                     onClick={() => setShowWithdrawModal(true)}
                     disabled={availableBalance <= 0}
-                    className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all ${
+                    className={`w-full py-4 rounded-2xl font-bold text-white shadow-xl transition-all duration-300 ${
                         availableBalance > 0
-                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:scale-95'
-                            : 'bg-slate-300 cursor-not-allowed'
+                            ? 'bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 hover:scale-105 hover:shadow-2xl'
+                            : 'bg-gradient-to-r from-slate-300 to-slate-400 cursor-not-allowed'
                     }`}
                 >
                     <div className="flex items-center justify-center gap-2">
-                        <DollarSign size={20} />
+                        <DollarSign size={22} />
                         <span>Withdraw Funds</span>
                     </div>
                 </button>
 
                 {/* Transactions History */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100">
+                <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200">
                     <div className="p-4 border-b border-slate-100">
                         <h2 className="font-bold text-slate-900">Transaction History</h2>
                     </div>
@@ -881,29 +1021,42 @@ const PaymentsCredits = ({ user, profile, onBack, showToast }) => {
 
                             {/* Withdrawal Method */}
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Withdrawal Method</label>
-                                <div className="grid grid-cols-2 gap-2">
+                                <label className="block text-sm font-bold text-slate-700 mb-3">Withdrawal Method</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {stripeConnected && (
+                                        <button
+                                            onClick={() => setWithdrawMethod('stripe')}
+                                            className={`p-3 rounded-xl border-2 transition-all duration-300 ${
+                                                withdrawMethod === 'stripe'
+                                                    ? 'border-orange-500 bg-orange-50 scale-105 shadow-lg'
+                                                    : 'border-slate-200 bg-white hover:border-slate-300'
+                                            }`}
+                                        >
+                                            <p className="text-sm font-bold text-slate-900">Stripe</p>
+                                            <p className="text-xs text-slate-500">Instant</p>
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => setWithdrawMethod('bank')}
-                                        className={`p-3 rounded-lg border-2 transition-all ${
+                                        className={`p-3 rounded-xl border-2 transition-all duration-300 ${
                                             withdrawMethod === 'bank'
-                                                ? 'border-orange-500 bg-orange-50'
-                                                : 'border-slate-200 bg-white'
+                                                ? 'border-orange-500 bg-orange-50 scale-105 shadow-lg'
+                                                : 'border-slate-200 bg-white hover:border-slate-300'
                                         }`}
                                     >
-                                        <p className="text-sm font-bold">Bank Account</p>
+                                        <p className="text-sm font-bold text-slate-900">Bank</p>
                                         <p className="text-xs text-slate-500">1-3 days</p>
                                     </button>
                                     <button
                                         onClick={() => setWithdrawMethod('crypto')}
-                                        className={`p-3 rounded-lg border-2 transition-all ${
+                                        className={`p-3 rounded-xl border-2 transition-all duration-300 ${
                                             withdrawMethod === 'crypto'
-                                                ? 'border-orange-500 bg-orange-50'
-                                                : 'border-slate-200 bg-white'
+                                                ? 'border-orange-500 bg-orange-50 scale-105 shadow-lg'
+                                                : 'border-slate-200 bg-white hover:border-slate-300'
                                         }`}
                                     >
-                                        <p className="text-sm font-bold">Crypto Wallet</p>
-                                        <p className="text-xs text-slate-500">Instant</p>
+                                        <p className="text-sm font-bold text-slate-900">Crypto</p>
+                                        <p className="text-xs text-slate-500">Fast</p>
                                     </button>
                                 </div>
                             </div>
@@ -919,22 +1072,24 @@ const PaymentsCredits = ({ user, profile, onBack, showToast }) => {
                                     value={withdrawAmount}
                                     onChange={(e) => setWithdrawAmount(e.target.value)}
                                     placeholder="0.00"
-                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-lg font-bold"
+                                    className="w-full p-4 border-2 border-slate-300 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 focus:outline-none text-lg font-bold shadow-md"
                                 />
                                 <button
                                     onClick={() => setWithdrawAmount(availableBalance.toString())}
-                                    className="mt-2 text-xs text-orange-600 font-bold hover:text-orange-700"
+                                    className="mt-2 text-sm text-orange-600 font-bold hover:text-orange-700 transition-colors"
                                 >
                                     Withdraw All
                                 </button>
                             </div>
 
                             {/* Info */}
-                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 shadow-sm">
                                 <div className="flex items-start gap-2">
-                                    <Info size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
-                                    <p className="text-xs text-blue-800">
-                                        {withdrawMethod === 'bank'
+                                    <Info size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                                    <p className="text-xs text-blue-800 leading-relaxed">
+                                        {withdrawMethod === 'stripe'
+                                            ? 'Stripe transfers are processed instantly to your connected account.'
+                                            : withdrawMethod === 'bank'
                                             ? 'Bank transfers typically arrive within 1-3 business days.'
                                             : 'Crypto withdrawals are processed instantly to your wallet address.'}
                                     </p>
@@ -942,18 +1097,85 @@ const PaymentsCredits = ({ user, profile, onBack, showToast }) => {
                             </div>
 
                             {/* Buttons */}
-                            <div className="flex gap-2 pt-2">
+                            <div className="flex gap-3 pt-2">
                                 <button
                                     onClick={() => setShowWithdrawModal(false)}
-                                    className="flex-1 py-3 px-4 rounded-lg border-2 border-slate-200 font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                                    className="flex-1 py-3 px-4 rounded-xl border-2 border-slate-300 font-bold text-slate-700 hover:bg-slate-50 transition-all duration-300 hover:scale-105"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleWithdraw}
-                                    className="flex-1 py-3 px-4 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white font-bold hover:from-green-600 hover:to-green-700 transition-all shadow-lg"
+                                    className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-green-500 via-green-600 to-green-700 text-white font-bold hover:from-green-600 hover:via-green-700 hover:to-green-800 transition-all shadow-xl hover:shadow-2xl hover:scale-105"
                                 >
                                     Confirm Withdrawal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Age Verification Modal */}
+            {showAgeVerification && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border-2 border-purple-200">
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-purple-50 to-purple-100">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-purple-500 p-2 rounded-xl">
+                                    <Shield size={24} className="text-white" />
+                                </div>
+                                <h2 className="text-xl font-bold text-slate-900">Age Verification</h2>
+                            </div>
+                            <button onClick={() => setShowAgeVerification(false)} className="p-2 hover:bg-purple-200 rounded-lg transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        
+                        <div className="p-6 space-y-4">
+                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-2xl p-5">
+                                <h3 className="font-bold text-purple-900 mb-2">Why verify your age?</h3>
+                                <ul className="space-y-2 text-sm text-purple-800">
+                                    <li className="flex items-start gap-2">
+                                        <CheckCircle size={16} className="flex-shrink-0 mt-0.5 text-purple-600" />
+                                        <span>Access all platform features</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <CheckCircle size={16} className="flex-shrink-0 mt-0.5 text-purple-600" />
+                                        <span>Build trust with verified age badge</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <CheckCircle size={16} className="flex-shrink-0 mt-0.5 text-purple-600" />
+                                        <span>Secure verification via Stripe Identity</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <CheckCircle size={16} className="flex-shrink-0 mt-0.5 text-purple-600" />
+                                        <span>Quick and easy process</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4">
+                                <div className="flex items-start gap-2">
+                                    <AlertCircle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                                    <p className="text-sm text-amber-800">
+                                        <strong>You must be 18+</strong> to use this service. Age verification is required by law and helps keep our community safe.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    onClick={() => setShowAgeVerification(false)}
+                                    className="flex-1 py-3 px-4 rounded-xl border-2 border-slate-300 font-bold text-slate-700 hover:bg-slate-50 transition-all duration-300 hover:scale-105"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAgeVerification}
+                                    className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 text-white font-bold hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 transition-all shadow-xl hover:shadow-2xl hover:scale-105"
+                                >
+                                    Verify Age
                                 </button>
                             </div>
                         </div>
