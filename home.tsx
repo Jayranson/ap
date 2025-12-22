@@ -114,9 +114,9 @@ const ProfileTile = ({ profile, distanceKm, onOpenProfile, isCurrentUser, should
     return (
         <button
             onClick={() => onOpenProfile(profile)}
-            className={`w-full aspect-square relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 group transform hover:-translate-y-1 active:scale-95 ${
+            className={`w-full aspect-square relative overflow-hidden rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 border-4 group transform hover:-translate-y-2 hover:scale-[1.02] active:scale-95 backdrop-blur-sm ${
                 getBorderClasses()
-            } ${isCurrentUser ? 'ring-2 ring-orange-500 ring-offset-2 ring-offset-orange-100' : ''}`}
+            } ${isCurrentUser ? 'ring-4 ring-orange-500 ring-offset-4 ring-offset-orange-50' : ''}`}
         >
             <LazyImage
                 src={photoUrl}
@@ -145,15 +145,15 @@ const ProfileTile = ({ profile, distanceKm, onOpenProfile, isCurrentUser, should
             
             {/* Unread Messages Count - Top Right (Smaller size with animation) */}
             {unreadCount > 0 && !isCurrentUser && (
-                <div className="absolute top-1.5 right-1.5 z-10 w-5 h-5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-lg border-2 border-white animate-bounce">
+                <div className="absolute top-2 right-2 z-10 w-6 h-6 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 rounded-full flex items-center justify-center text-white text-[10px] font-extrabold shadow-xl border-2 border-white animate-bounce ring-2 ring-orange-300">
                     {unreadCount > 9 ? '9+' : unreadCount}
                 </div>
             )}
             
             {/* Admin Badge - Top Left with Shield (Higher priority than busy badge) */}
             {isAdmin && (
-                <div className="absolute top-1.5 left-1.5 z-20 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 text-white p-1.5 rounded-full shadow-xl border-2 border-white flex items-center justify-center animate-pulse-slow" title="Platform Admin">
-                    <Shield size={12} className="fill-white" />
+                <div className="absolute top-2 left-2 z-20 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-800 text-white p-2 rounded-full shadow-2xl border-2 border-white flex items-center justify-center animate-pulse ring-2 ring-purple-300" title="Platform Admin">
+                    <Shield size={14} className="fill-white" />
                 </div>
             )}
             
@@ -171,21 +171,21 @@ const ProfileTile = ({ profile, distanceKm, onOpenProfile, isCurrentUser, should
             })()}
 
             {/* Overlay for distance and name */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-2 group-hover:from-black/95 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent flex flex-col justify-end p-3 group-hover:from-black/100 transition-all duration-500">
                 <div className='flex items-end justify-between w-full transform group-hover:translate-y-0 transition-transform duration-300'>
-                    <span className="text-white text-[11px] font-bold truncate text-left w-2/3 shadow-black drop-shadow-lg group-hover:drop-shadow-2xl transition-all duration-300">
+                    <span className="text-white text-xs font-bold truncate text-left w-2/3 drop-shadow-2xl group-hover:text-orange-200 transition-colors duration-300">
                         {profile.name || profile.username}
                         {isCurrentUser && <span className='font-normal opacity-75 ml-1'>(You)</span>}
                     </span>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                     {/* Verified Tradie Badge - Inside distance field */}
                     {isTradie && isVerified && (
-                        <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-500 rounded-full p-0.5 shadow-md border border-white flex items-center justify-center" title="Verified Tradie">
-                            <HardHat className="w-2.5 h-2.5 text-white" />
+                        <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 rounded-full p-1 shadow-lg border-2 border-white flex items-center justify-center ring-1 ring-orange-300" title="Verified Tradie">
+                            <HardHat className="w-3 h-3 text-white" />
                             </div>
                         )}
                         {distanceDisplay && (
-                            <span className={`text-[9px] font-bold text-white px-1 py-0.5 rounded-full shadow-md transition-all duration-300 max-w-[72px] text-center truncate ${isCurrentUser ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'} group-hover:shadow-lg group-hover:scale-105`}>
+                            <span className={`text-[9px] font-extrabold text-white px-2 py-1 rounded-full shadow-lg transition-all duration-300 max-w-[72px] text-center truncate ${isCurrentUser ? 'bg-gradient-to-r from-green-600 via-green-700 to-green-800' : 'bg-gradient-to-r from-orange-600 via-orange-700 to-orange-800'} group-hover:shadow-2xl group-hover:scale-110 border border-white/30`}>
                                 {distanceDisplay}
                             </span>
                         )}
@@ -1351,22 +1351,23 @@ const LandingPage = ({ onLogin }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col items-center p-6 relative overflow-y-auto">
       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #f97316 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+      <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/5 via-transparent to-purple-500/5 animate-pulse"></div>
       
       <div className="z-10 w-full max-w-md py-8">
         {/* Logo */}
         <div className="flex flex-col items-center mb-6 animate-fade-in">
-          <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-500 p-3 rounded-2xl mb-3 shadow-[0_0_40px_rgba(249,115,22,0.6)] animate-pulse-slow hover:scale-110 transition-transform duration-300">
-            <HardHat size={40} className="text-white fill-white animate-bounce-subtle" />
+          <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 p-4 rounded-3xl mb-4 shadow-[0_0_60px_rgba(249,115,22,0.8)] animate-pulse-slow hover:scale-110 transition-transform duration-500 ring-4 ring-orange-400/30">
+            <HardHat size={48} className="text-white fill-white animate-bounce-subtle" />
           </div>
-          <h1 className="text-4xl font-extrabold mb-2 tracking-tight">
+          <h1 className="text-5xl font-extrabold mb-3 tracking-tight drop-shadow-2xl">
             <span className="bg-gradient-to-r from-white via-slate-100 to-white bg-clip-text text-transparent">Gay</span>
             <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">Tradies</span>
           </h1>
-          <p className="text-slate-400 text-sm font-medium animate-slide-up">Verified tradesmen & the men who want them.</p>
+          <p className="text-slate-300 text-base font-semibold animate-slide-up drop-shadow-lg">Verified tradesmen & the men who want them.</p>
         </div>
 
         {/* Auth Form */}
-        <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl animate-slide-up backdrop-blur-sm border border-slate-700">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 shadow-2xl animate-slide-up backdrop-blur-xl border-2 border-slate-700 hover:border-orange-500/30 transition-all duration-500">
           {verificationNoticeEmail && (
             <div className="mb-4 rounded-xl border border-orange-400/50 bg-orange-500/10 text-orange-100 p-4 text-sm flex flex-col gap-2 shadow-inner">
               <div className="font-bold text-orange-100 text-base">Check your inbox</div>
@@ -1400,19 +1401,19 @@ const LandingPage = ({ onLogin }) => {
               </div>
             </div>
           )}
-          <div className="flex bg-slate-700 rounded-lg p-1 mb-4 shadow-inner">
+          <div className="flex bg-slate-700/80 rounded-xl p-1.5 mb-6 shadow-inner backdrop-blur-sm border border-slate-600">
             <button
             onClick={() => { setIsSignUp(true); setError(''); setSuccessMessage(''); }}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-bold transition-all duration-300 ${
-              isSignUp ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105' : 'text-slate-400 hover:text-slate-200'
+            className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all duration-300 ${
+              isSignUp ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white shadow-xl scale-105 ring-2 ring-orange-400/50' : 'text-slate-300 hover:text-white hover:bg-slate-600/50'
             }`}
           >
             Sign Up
           </button>
           <button
             onClick={() => { setIsSignUp(false); setError(''); setSuccessMessage(''); }}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-bold transition-all duration-300 ${
-              !isSignUp ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105' : 'text-slate-400 hover:text-slate-200'
+            className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all duration-300 ${
+              !isSignUp ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white shadow-xl scale-105 ring-2 ring-orange-400/50' : 'text-slate-300 hover:text-white hover:bg-slate-600/50'
             }`}
           >
               Login
