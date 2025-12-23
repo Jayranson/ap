@@ -2342,7 +2342,7 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
     const [otherReceipts, setOtherReceipts] = useState({ lastDeliveredAt: null, lastReadAt: null });
     const receiptWriteRef = useRef({ delivered: 0, read: 0 });
     const [hasWorkConsent, setHasWorkConsent] = useState(partner?.role !== 'tradie');
-    const [partnerProfile, setPartnerProfile] = useState(partner);
+    const [partnerProfile, setPartnerProfile] = useState(null);
     const [showSafetyToast, setShowSafetyToast] = useState(partner?.role === 'tradie');
     const [violationToast, setViolationToast] = useState('');
     const [profilePictureRequests, setProfilePictureRequests] = useState([]);
