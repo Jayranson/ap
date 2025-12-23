@@ -747,48 +747,47 @@ const PublicProfile = ({ username, onBack }) => {
   const photoUrl = profile.primaryPhoto || profile.photo || `https://placehold.co/600x600/${isTradie ? '1e293b' : '64748b'}/ffffff?text=${(profile.name || 'U').charAt(0)}`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 overflow-y-auto pb-20">
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 overflow-hidden flex flex-col">
       {/* Header with Back Button */}
-      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b-2 border-slate-200 shadow-lg">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200 shadow-md flex-shrink-0">
+        <div className="max-w-4xl mx-auto px-3 py-2 flex items-center justify-between">
           <button 
             onClick={onBack}
-            className="flex items-center gap-2 text-slate-700 hover:text-orange-600 transition-all duration-300 font-bold group"
+            className="flex items-center gap-1 text-slate-700 hover:text-orange-600 transition-all duration-300 font-bold group"
           >
-            <div className="p-2 rounded-xl bg-slate-100 group-hover:bg-orange-100 transition-all duration-300 group-hover:scale-110">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-1.5 rounded-lg bg-slate-100 group-hover:bg-orange-100 transition-all duration-300">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
             </div>
-            <span className="text-sm">Back</span>
+            <span className="text-xs">Back</span>
           </button>
-          <div className="text-sm font-bold text-slate-900">Public Profile</div>
-          <div className="w-20"></div>
+          <div className="text-xs font-bold text-slate-900">Public Profile</div>
+          <div className="w-16"></div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto px-3 py-3 flex-1 overflow-y-auto">
         {/* Cover Photo & Profile Header Card */}
-        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-200 overflow-hidden">
-          {/* Cover Photo */}
-          <div className="relative h-48 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+          {/* Cover Photo - Reduced height */}
+          <div className="relative h-24 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/30 via-transparent to-pink-500/30"></div>
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIxLTEuNzktNC00LTRzLTQgMS43OS00IDQgMS43OSA0IDQgNCA0LTEuNzkgNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
             {isTradie && (
-              <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full px-4 py-2 border-2 border-white/40 shadow-xl">
-                <div className="flex items-center gap-2">
-                  <HardHat size={18} className="text-white" />
-                  <span className="text-white font-bold text-sm">Tradie</span>
+              <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full px-2 py-1 border border-white/40 shadow-lg">
+                <div className="flex items-center gap-1">
+                  <HardHat size={14} className="text-white" />
+                  <span className="text-white font-bold text-xs">Tradie</span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Profile Info Section */}
-          <div className="relative px-6 pb-6">
-            {/* Avatar */}
-            <div className="relative -mt-16 mb-4">
-              <div className="w-32 h-32 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-slate-100 ring-4 ring-orange-200">
+          {/* Profile Info Section - Compact */}
+          <div className="relative px-4 pb-3">
+            {/* Avatar - Smaller */}
+            <div className="relative -mt-10 mb-2">
+              <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 ring-2 ring-orange-200">
                 <img 
                   src={photoUrl} 
                   alt={profile.name} 
@@ -797,43 +796,43 @@ const PublicProfile = ({ username, onBack }) => {
                 />
               </div>
               {isAdmin && (
-                <div className="absolute bottom-0 right-0 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 rounded-full p-2 border-4 border-white shadow-xl animate-pulse">
-                  <Shield size={20} className="text-white fill-white" />
+                <div className="absolute bottom-0 right-0 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 rounded-full p-1 border-2 border-white shadow-lg">
+                  <Shield size={14} className="text-white fill-white" />
                 </div>
               )}
               {!isAdmin && profile.verified && (
-                <div className="absolute bottom-0 right-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-2 border-4 border-white shadow-xl">
-                  <ShieldCheck size={20} className="text-white" />
+                <div className="absolute bottom-0 right-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-1 border-2 border-white shadow-lg">
+                  <ShieldCheck size={14} className="text-white" />
                 </div>
               )}
             </div>
 
-            {/* Name & Username */}
-            <div className="mb-4">
-              <div className="flex items-center gap-3 flex-wrap mb-2">
-                <h1 className="text-3xl font-extrabold text-slate-900">{profile.name || profile.username}</h1>
+            {/* Name & Username - Compact */}
+            <div className="mb-2">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <h1 className="text-xl font-extrabold text-slate-900">{profile.name || profile.username}</h1>
                 {isAdmin && (
-                  <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-xs font-bold shadow-lg">
+                  <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-[10px] font-bold shadow-md">
                     ADMIN
                   </span>
                 )}
                 {!isAdmin && profile.verified && (
-                  <span className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold shadow-lg">
+                  <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[10px] font-bold shadow-md">
                     VERIFIED
                   </span>
                 )}
               </div>
               {profile.username && (
-                <p className="text-base font-bold text-orange-600 mb-2">@{profile.username}</p>
+                <p className="text-sm font-bold text-orange-600 mb-1">@{profile.username}</p>
               )}
-              <div className="flex items-center gap-4 flex-wrap text-sm text-slate-600">
-                <div className="flex items-center gap-2">
-                  <User size={16} className="text-slate-400" />
+              <div className="flex items-center gap-3 flex-wrap text-xs text-slate-600">
+                <div className="flex items-center gap-1">
+                  <User size={12} className="text-slate-400" />
                   <span className="font-semibold capitalize">{profile.role || 'member'}</span>
                 </div>
                 {profile.location && (
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-1">
+                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
@@ -843,172 +842,85 @@ const PublicProfile = ({ username, onBack }) => {
               </div>
             </div>
 
-            {/* Rate Display for Tradies */}
-            {isTradie && profile.rate && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-4 mb-4">
-                <div className="flex items-center justify-between">
+            {/* Inline Rate & Bio - Combined view */}
+            <div className="flex gap-2 mb-2">
+              {/* Rate Display for Tradies - Compact */}
+              {isTradie && profile.rate && (
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg px-3 py-2 flex items-center gap-2 flex-shrink-0">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                   <div>
-                    <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Hourly Rate</p>
-                    <p className="text-3xl font-extrabold text-green-900">£{profile.rate}<span className="text-base text-green-600">/hr</span></p>
-                  </div>
-                  <div className="bg-green-500 rounded-full p-3 shadow-lg">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <p className="text-lg font-extrabold text-green-900">£{profile.rate}<span className="text-xs text-green-600">/hr</span></p>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <Button variant="secondary" className="w-full py-4 text-base font-bold shadow-xl hover:shadow-2xl">
-                <MessageCircle size={20} className="mr-2" /> Message
-              </Button>
-              {isTradie ? (
-                <Button variant="primary" className="w-full py-4 text-base font-bold shadow-xl hover:shadow-2xl">
-                  <HardHat size={20} className="mr-2" /> Hire
-                </Button>
-              ) : (
-                <Button variant="outline" className="w-full py-4 text-base font-bold">
-                  <Star size={20} className="mr-2" /> Favorite
-                </Button>
+              )}
+              
+              {/* Bio - Compact inline */}
+              {profile.bio && (
+                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                  <p className="text-xs text-slate-700 leading-relaxed line-clamp-2">{profile.bio}</p>
+                </div>
               )}
             </div>
-          </div>
-        </div>
 
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-2">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveSection('about')}
-              className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
-                activeSection === 'about'
-                  ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-lg scale-105'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              About
-            </button>
-            <button
-              onClick={() => setActiveSection('gallery')}
-              className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
-                activeSection === 'gallery'
-                  ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-lg scale-105'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              Gallery
-            </button>
-            {isTradie && (
-              <button
-                onClick={() => setActiveSection('reviews')}
-                className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
-                  activeSection === 'reviews'
-                    ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-lg scale-105'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                Reviews
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Content Sections */}
-        {activeSection === 'about' && (
-          <div className="space-y-4 animate-fade-in">
-            {/* Bio */}
-            {profile.bio ? (
-              <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="bg-orange-100 p-2 rounded-lg">
-                    <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-extrabold text-slate-900">About Me</h3>
+            {/* Stats - Compact inline */}
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200 p-2 text-center">
+                <div className="text-lg font-extrabold text-orange-600">
+                  {profile.jobsCompleted || 0}
                 </div>
-                <p className="text-base text-slate-700 leading-relaxed">{profile.bio}</p>
+                <div className="text-[9px] font-bold text-orange-800 uppercase">Jobs</div>
               </div>
-            ) : (
-              <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-8 text-center">
-                <div className="bg-slate-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <AlertCircle className="text-slate-400" size={32} />
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 p-2 text-center">
+                <div className="text-lg font-extrabold text-green-600">
+                  {profile.rating ? profile.rating.toFixed(1) : '5.0'}
                 </div>
-                <p className="text-slate-500 font-medium">No bio available yet</p>
+                <div className="text-[9px] font-bold text-green-800 uppercase">Rating</div>
               </div>
-            )}
-
-            {/* Skills/Services for Tradies */}
-            {isTradie && (
-              <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <HardHat size={20} className="text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-extrabold text-slate-900">Services & Skills</h3>
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-2 text-center">
+                <div className="text-lg font-extrabold text-blue-600">
+                  {profile.reviewCount || 0}
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {profile.trades && profile.trades.length > 0 ? (
-                    profile.trades.map((trade, idx) => (
-                      <span key={idx} className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-sm font-bold shadow-lg">
-                        {trade}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="px-4 py-2 bg-slate-100 text-slate-600 rounded-full text-sm font-bold">
-                      General Services
+                <div className="text-[9px] font-bold text-blue-800 uppercase">Reviews</div>
+              </div>
+            </div>
+
+            {/* Skills/Services for Tradies - Compact */}
+            {isTradie && profile.trades && profile.trades.length > 0 && (
+              <div className="mb-2">
+                <div className="flex flex-wrap gap-1">
+                  {profile.trades.slice(0, 4).map((trade, idx) => (
+                    <span key={idx} className="px-2 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-[10px] font-bold shadow-md">
+                      {trade}
+                    </span>
+                  ))}
+                  {profile.trades.length > 4 && (
+                    <span className="px-2 py-1 bg-slate-200 text-slate-600 rounded-full text-[10px] font-bold">
+                      +{profile.trades.length - 4} more
                     </span>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl shadow-lg border-2 border-orange-200 p-4 text-center">
-                <div className="text-3xl font-extrabold text-orange-600 mb-1">
-                  {profile.jobsCompleted || 0}
-                </div>
-                <div className="text-xs font-bold text-orange-800 uppercase tracking-wide">Jobs Done</div>
-              </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg border-2 border-green-200 p-4 text-center">
-                <div className="text-3xl font-extrabold text-green-600 mb-1">
-                  {profile.rating ? profile.rating.toFixed(1) : '5.0'}
-                </div>
-                <div className="text-xs font-bold text-green-800 uppercase tracking-wide">Rating</div>
-              </div>
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-lg border-2 border-blue-200 p-4 text-center">
-                <div className="text-3xl font-extrabold text-blue-600 mb-1">
-                  {profile.reviewCount || 0}
-                </div>
-                <div className="text-xs font-bold text-blue-800 uppercase tracking-wide">Reviews</div>
-              </div>
+            {/* Action Buttons - Compact */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="secondary" className="w-full py-2 text-sm font-bold shadow-lg">
+                <MessageCircle size={16} className="mr-1" /> Message
+              </Button>
+              {isTradie ? (
+                <Button variant="primary" className="w-full py-2 text-sm font-bold shadow-lg">
+                  <HardHat size={16} className="mr-1" /> Hire
+                </Button>
+              ) : (
+                <Button variant="outline" className="w-full py-2 text-sm font-bold">
+                  <Star size={16} className="mr-1" /> Favorite
+                </Button>
+              )}
             </div>
           </div>
-        )}
-
-        {activeSection === 'gallery' && (
-          <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-8 text-center animate-fade-in">
-            <div className="bg-slate-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-              <ImageIcon className="text-slate-400" size={40} />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Gallery Coming Soon</h3>
-            <p className="text-slate-600">Photo gallery will be available here</p>
-          </div>
-        )}
-
-        {activeSection === 'reviews' && isTradie && (
-          <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-8 text-center animate-fade-in">
-            <div className="bg-yellow-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-              <Star className="text-yellow-500 fill-yellow-500" size={40} />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Reviews Coming Soon</h3>
-            <p className="text-slate-600">Customer reviews will be displayed here</p>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
