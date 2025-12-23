@@ -2358,14 +2358,18 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
     const [reportDetails, setReportDetails] = useState('');
     
     // Calculate blur status for partner - recalculates when partnerProfile or profilePictureRequests change
-    const isPending = useMemo(() => 
-        profilePictureRequests.some(req => req.userId === partner?.uid && req.status === 'pending'),
-        [profilePictureRequests, partner?.uid]
-    );
-    const shouldBlurPartner = useMemo(() => 
-        effectivePartner?.blurPhotos === true || isPending,
-        [effectivePartner?.blurPhotos, isPending]
-    );
+    const isPending = useMemo(() => {
+        const pending = profilePictureRequests.some(req => req.userId === partner?.uid && req.status === 'pending');
+        console.log('[ChatRoom Blur] isPending:', pending, 'for user:', partner?.uid);
+        return pending;
+    }, [profilePictureRequests, partner?.uid]);
+    
+    const shouldBlurPartner = useMemo(() => {
+        const hasBlurPhotos = effectivePartner?.blurPhotos === true;
+        const shouldBlur = hasBlurPhotos || isPending;
+        console.log('[ChatRoom Blur] effectivePartner:', effectivePartner?.name, 'blurPhotos:', hasBlurPhotos, 'isPending:', isPending, 'shouldBlur:', shouldBlur);
+        return shouldBlur;
+    }, [effectivePartner?.blurPhotos, effectivePartner?.name, isPending]);
     const handleReportSubmit = async () => {
         try {
             const recent = messages.slice(-10).map(m => ({
