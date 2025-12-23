@@ -1935,6 +1935,7 @@ const WinksList = ({ user, onSelectProfile, onClose }) => {
     const [winks, setWinks] = useState([]);
     const [senderProfiles, setSenderProfiles] = useState({});
     const [sendingWink, setSendingWink] = useState(null);
+    const [profilePictureRequests, setProfilePictureRequests] = useState([]);
 
     useEffect(() => {
         if (!db || !user) return;
@@ -1970,6 +1971,17 @@ const WinksList = ({ user, onSelectProfile, onClose }) => {
         
         return () => unsub();
     }, [user, senderProfiles]);
+    
+    // Listen to profile picture verification requests for blur detection
+    useEffect(() => {
+        if (!db) return;
+        const q = query(collection(db, 'artifacts', getAppId(), 'private', 'data', 'profilePictureVerification'));
+        const unsub = onSnapshot(q, (snap) => {
+            const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setProfilePictureRequests(requests);
+        });
+        return () => unsub();
+    }, []);
     
     const handleSendWinkBack = async (recipientId) => {
         if (!user || !recipientId || sendingWink === recipientId) return;
@@ -2049,6 +2061,10 @@ const WinksList = ({ user, onSelectProfile, onClose }) => {
                         {winks.map(wink => {
                             const sender = senderProfiles[wink.senderId] || {};
                             
+                            // Calculate blur status for sender
+                            const isPending = profilePictureRequests.some(req => req.userId === wink.senderId && req.status === 'pending');
+                            const shouldBlurSender = sender?.blurPhotos || isPending;
+                            
                             return (
                                 <div 
                                     key={wink.id} 
@@ -2067,7 +2083,7 @@ const WinksList = ({ user, onSelectProfile, onClose }) => {
                                             <img 
                                                 src={sender.primaryPhoto || sender.photo} 
                                                 alt={sender.name || 'User'} 
-                                                className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md hover:border-orange-500 transition-all"
+                                                className={`w-14 h-14 rounded-full object-cover border-2 border-white shadow-md hover:border-orange-500 transition-all ${shouldBlurSender ? 'blur-md scale-105' : ''}`}
                                             />
                                         ) : (
                                             <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md hover:border-orange-500 transition-all">
@@ -2122,6 +2138,7 @@ const ChatList = ({ user, onSelectProfile, onSelectChat, onClose }) => {
   const [partnerProfiles, setPartnerProfiles] = useState({});
   const [unreadCounts, setUnreadCounts] = useState({});
   const [isMarkingAll, setIsMarkingAll] = useState(false);
+  const [profilePictureRequests, setProfilePictureRequests] = useState([]);
 
   useEffect(() => {
       if (!db) return;
@@ -2170,6 +2187,17 @@ const ChatList = ({ user, onSelectProfile, onSelectChat, onClose }) => {
           unsubUnread();
       };
   }, [user, partnerProfiles]);
+
+  // Listen to profile picture verification requests for blur detection
+  useEffect(() => {
+      if (!db) return;
+      const q = query(collection(db, 'artifacts', getAppId(), 'private', 'data', 'profilePictureVerification'));
+      const unsub = onSnapshot(q, (snap) => {
+          const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          setProfilePictureRequests(requests);
+      });
+      return () => unsub();
+  }, []);
 
   const handleMarkAllRead = async () => {
       if (!db || !user) return;
@@ -2242,6 +2270,10 @@ const ChatList = ({ user, onSelectProfile, onSelectChat, onClose }) => {
                          const partner = partnerProfiles[partnerId] || {};
                          const unreadCount = unreadCounts[conv.id] || 0;
                          const hasUnread = unreadCount > 0;
+                         
+                         // Calculate blur status for partner
+                         const isPending = profilePictureRequests.some(req => req.userId === partnerId && req.status === 'pending');
+                         const shouldBlurPartner = partner?.blurPhotos || isPending;
 
                          return (
                              <div 
@@ -2262,7 +2294,7 @@ const ChatList = ({ user, onSelectProfile, onSelectChat, onClose }) => {
                                          <img 
                                              src={partner.primaryPhoto || partner.photo} 
                                              alt={partner.name || 'User'} 
-                                             className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md hover:border-orange-500 transition-all"
+                                             className={`w-14 h-14 rounded-full object-cover border-2 border-white shadow-md hover:border-orange-500 transition-all ${shouldBlurPartner ? 'blur-md scale-105' : ''}`}
                                          />
                                      ) : (
                                          <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md hover:border-orange-500 transition-all">
