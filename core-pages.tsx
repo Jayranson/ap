@@ -2080,11 +2080,20 @@ const WinksList = ({ user, onSelectProfile, onClose }) => {
                                         }}
                                     >
                                         {sender.primaryPhoto || sender.photo ? (
-                                            <img 
-                                                src={sender.primaryPhoto || sender.photo} 
-                                                alt={sender.name || 'User'} 
-                                                className={`w-14 h-14 rounded-full object-cover border-2 border-white shadow-md hover:border-orange-500 transition-all ${shouldBlurSender ? 'blur-md scale-105' : ''}`}
-                                            />
+                                            <div className="relative">
+                                                <img 
+                                                    src={sender.primaryPhoto || sender.photo} 
+                                                    alt={sender.name || 'User'} 
+                                                    className={`w-14 h-14 rounded-full object-cover border-2 shadow-md hover:border-orange-500 transition-all ${shouldBlurSender ? 'border-orange-500 blur-md scale-105' : 'border-white'}`}
+                                                />
+                                                {shouldBlurSender && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <div className="w-14 h-14 rounded-full border-2 border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
+                                                            <Shield size={20} className="text-orange-600" strokeWidth={2.5} />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ) : (
                                             <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md hover:border-orange-500 transition-all">
                                                 <User size={28} className="text-white"/>
@@ -2291,11 +2300,20 @@ const ChatList = ({ user, onSelectProfile, onSelectChat, onClose }) => {
                                      }}
                                  >
                                      {partner.primaryPhoto || partner.photo ? (
-                                         <img 
-                                             src={partner.primaryPhoto || partner.photo} 
-                                             alt={partner.name || 'User'} 
-                                             className={`w-14 h-14 rounded-full object-cover border-2 border-white shadow-md hover:border-orange-500 transition-all ${shouldBlurPartner ? 'blur-md scale-105' : ''}`}
-                                         />
+                                         <div className="relative">
+                                             <img 
+                                                 src={partner.primaryPhoto || partner.photo} 
+                                                 alt={partner.name || 'User'} 
+                                                 className={`w-14 h-14 rounded-full object-cover border-2 shadow-md hover:border-orange-500 transition-all ${shouldBlurPartner ? 'border-orange-500 blur-md scale-105' : 'border-white'}`}
+                                             />
+                                             {shouldBlurPartner && (
+                                                 <div className="absolute inset-0 flex items-center justify-center">
+                                                     <div className="w-14 h-14 rounded-full border-2 border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
+                                                         <Shield size={20} className="text-orange-600" strokeWidth={2.5} />
+                                                     </div>
+                                                 </div>
+                                             )}
+                                         </div>
                                      ) : (
                                          <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md hover:border-orange-500 transition-all">
                                              <User size={28} className="text-white"/>
@@ -2701,11 +2719,20 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
                 >
                     <div className="flex-shrink-0">
                         {partner.photo ? (
-                            <img 
-                                src={partner.photo} 
-                                alt={partner.name || partner.username} 
-                                className={`w-10 h-10 rounded-full object-cover border-2 border-white shadow-md ${shouldBlurPartner ? 'blur-md scale-105' : ''}`}
-                            />
+                            <div className="relative">
+                                <img 
+                                    src={partner.photo} 
+                                    alt={partner.name || partner.username} 
+                                    className={`w-10 h-10 rounded-full object-cover border-2 shadow-md ${shouldBlurPartner ? 'border-orange-500 blur-md scale-105' : 'border-white'}`}
+                                />
+                                {shouldBlurPartner && (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-10 h-10 rounded-full border-2 border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
+                                            <Shield size={16} className="text-orange-600" strokeWidth={2.5} />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md">
                                 <User size={20} className="text-white"/>
@@ -2882,11 +2909,20 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
                             {!isMine && !isSystem && (
                                 <div className="flex-shrink-0">
                                     {partner.photo ? (
-                                        <img 
-                                            src={partner.photo} 
-                                            alt={partner.name || partner.username} 
-                                            className={`w-8 h-8 rounded-full object-cover border border-white shadow-sm ${shouldBlurPartner ? 'blur-md scale-105' : ''}`}
-                                        />
+                                        <div className="relative">
+                                            <img 
+                                                src={partner.photo} 
+                                                alt={partner.name || partner.username} 
+                                                className={`w-8 h-8 rounded-full object-cover shadow-sm ${shouldBlurPartner ? 'border-2 border-orange-500 blur-md scale-105' : 'border border-white'}`}
+                                            />
+                                            {shouldBlurPartner && (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <div className="w-8 h-8 rounded-full border border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
+                                                        <Shield size={12} className="text-orange-600" strokeWidth={2.5} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     ) : (
                                         <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-slate-300 to-slate-400 rounded-full border border-white shadow-sm">
                                             <User size={14} className="text-white"/>

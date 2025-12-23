@@ -793,11 +793,20 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                             >
                                 <div className="flex-shrink-0">
                                     {photoUrl ? (
-                                        <img 
-                                            src={photoUrl} 
-                                            alt={profile.name || profile.username} 
-                                            className={`w-10 h-10 rounded-full object-cover border-2 border-white shadow-md ${shouldBlurPhoto ? 'blur-md scale-105' : ''}`}
-                                        />
+                                        <div className="relative">
+                                            <img 
+                                                src={photoUrl} 
+                                                alt={profile.name || profile.username} 
+                                                className={`w-10 h-10 rounded-full object-cover border-2 ${shouldBlurPhoto ? 'border-orange-500 blur-md scale-105' : 'border-white'} shadow-md`}
+                                            />
+                                            {shouldBlurPhoto && (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <div className="w-10 h-10 rounded-full border-2 border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
+                                                        <Shield size={16} className="text-orange-600" strokeWidth={2.5} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     ) : (
                                         <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md">
                                             <User size={20} className="text-white"/>
@@ -956,11 +965,20 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                             {!isMe && (
                                                 <div className="flex-shrink-0">
                                                     {msg.senderPhoto || profile.primaryPhoto || profile.photo ? (
-                                                        <img 
-                                                            src={msg.senderPhoto || profile.primaryPhoto || profile.photo} 
-                                                            alt={msg.senderName || profile.name || profile.username} 
-                                                            className={`w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg ring-2 ring-slate-200 ${shouldBlurPhoto ? 'blur-md scale-105' : ''}`}
-                                                        />
+                                                        <div className="relative">
+                                                            <img 
+                                                                src={msg.senderPhoto || profile.primaryPhoto || profile.photo} 
+                                                                alt={msg.senderName || profile.name || profile.username} 
+                                                                className={`w-10 h-10 rounded-full object-cover border-2 shadow-lg ${shouldBlurPhoto ? 'border-orange-500 ring-2 ring-orange-300 blur-md scale-105' : 'border-white ring-2 ring-slate-200'}`}
+                                                            />
+                                                            {shouldBlurPhoto && (
+                                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                                    <div className="w-10 h-10 rounded-full border-2 border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
+                                                                        <Shield size={16} className="text-orange-600" strokeWidth={2.5} />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     ) : (
                                                         <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 rounded-full border-2 border-white shadow-lg ring-2 ring-slate-200">
                                                             <User size={16} className="text-white" strokeWidth={2.5} />
