@@ -717,25 +717,25 @@ const PublicProfile = ({ username, onBack }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50">
         <div className="relative">
           <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
           <div className="absolute inset-0 w-16 h-16 border-4 border-orange-300 border-b-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
         </div>
-        <div className="text-slate-600 text-base font-bold mt-6 animate-pulse">Loading profile...</div>
+        <div className="text-orange-800 text-base font-bold mt-6 animate-pulse">Loading profile...</div>
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 p-6 text-center">
-        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-200 p-8 max-w-md">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50 p-6 text-center">
+        <div className="bg-white rounded-3xl shadow-2xl border-2 border-orange-200 p-8 max-w-md">
           <div className="bg-red-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="text-red-500" size={40} />
           </div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">Profile Not Found</h2>
-          <p className="text-slate-600 font-medium mb-6">{error || 'This profile is not available.'}</p>
+          <p className="text-slate-700 font-medium mb-6">{error || 'This profile is not available.'}</p>
           <Button variant="secondary" onClick={onBack} className="w-full">Go Back</Button>
         </div>
       </div>
@@ -747,15 +747,15 @@ const PublicProfile = ({ username, onBack }) => {
   const photoUrl = profile.primaryPhoto || profile.photo || `https://placehold.co/600x600/${isTradie ? '1e293b' : '64748b'}/ffffff?text=${(profile.name || 'U').charAt(0)}`;
 
   return (
-    <div className="h-screen bg-white overflow-hidden flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50 overflow-hidden flex flex-col">
       {/* Cover Photo with Back Button */}
-      <div className="relative h-32 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 flex-shrink-0">
-        <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/30 via-transparent to-pink-500/30"></div>
+      <div className="relative h-32 bg-gradient-to-br from-orange-300 via-orange-400 to-amber-400 flex-shrink-0">
+        <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/40 via-transparent to-yellow-300/40"></div>
         {/* Back Button */}
         <div className="absolute top-3 left-3 z-10">
           <button 
             onClick={onBack}
-            className="flex items-center gap-2 text-white hover:text-orange-100 transition-all duration-300 font-bold group bg-black/20 backdrop-blur-md rounded-xl px-3 py-2 shadow-lg"
+            className="flex items-center gap-2 text-white hover:text-orange-50 transition-all duration-300 font-bold group bg-white/30 backdrop-blur-md rounded-xl px-3 py-2 shadow-lg hover:bg-white/40"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -764,21 +764,21 @@ const PublicProfile = ({ username, onBack }) => {
           </button>
         </div>
         {isTradie && (
-          <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/40 shadow-lg">
+          <div className="absolute top-3 right-3 bg-white/40 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/50 shadow-lg">
             <div className="flex items-center gap-1.5">
-              <HardHat size={16} className="text-white" />
-              <span className="text-white font-bold text-sm">Tradie</span>
+              <HardHat size={16} className="text-orange-800" />
+              <span className="text-orange-900 font-bold text-sm">Tradie</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 to-white">
+      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-orange-50 via-amber-50 to-white">
         <div className="px-5 pb-6">
           {/* Avatar */}
           <div className="relative -mt-12 mb-4">
-            <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-100 ring-4 ring-orange-200">
+            <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-orange-100 ring-4 ring-orange-300">
               <img 
                 src={photoUrl} 
                 alt={profile.name} 
@@ -787,12 +787,12 @@ const PublicProfile = ({ username, onBack }) => {
               />
             </div>
             {isAdmin && (
-              <div className="absolute bottom-0 right-0 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 rounded-full p-1.5 border-3 border-white shadow-xl animate-pulse">
+              <div className="absolute bottom-0 right-0 bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 rounded-full p-1.5 border-3 border-white shadow-xl animate-pulse">
                 <Shield size={16} className="text-white fill-white" />
               </div>
             )}
             {!isAdmin && profile.verified && (
-              <div className="absolute bottom-0 right-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-1.5 border-3 border-white shadow-xl">
+              <div className="absolute bottom-0 right-0 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full p-1.5 border-3 border-white shadow-xl">
                 <ShieldCheck size={16} className="text-white" />
               </div>
             )}
@@ -803,12 +803,12 @@ const PublicProfile = ({ username, onBack }) => {
             <div className="flex items-center gap-2 flex-wrap mb-2">
               <h1 className="text-2xl font-extrabold text-slate-900">{profile.name || profile.username}</h1>
               {isAdmin && (
-                <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-xs font-bold shadow-lg">
+                <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-400 to-purple-500 text-white text-xs font-bold shadow-lg">
                   ADMIN
                 </span>
               )}
               {!isAdmin && profile.verified && (
-                <span className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold shadow-lg">
+                <span className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-400 to-blue-500 text-white text-xs font-bold shadow-lg">
                   VERIFIED
                 </span>
               )}
@@ -816,14 +816,14 @@ const PublicProfile = ({ username, onBack }) => {
             {profile.username && (
               <p className="text-base font-bold text-orange-600 mb-2">@{profile.username}</p>
             )}
-            <div className="flex items-center gap-4 flex-wrap text-sm text-slate-600">
+            <div className="flex items-center gap-4 flex-wrap text-sm text-slate-700">
               <div className="flex items-center gap-2">
-                <User size={14} className="text-slate-400" />
+                <User size={14} className="text-orange-500" />
                 <span className="font-semibold capitalize">{profile.role || 'member'}</span>
               </div>
               {profile.location && (
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -835,8 +835,8 @@ const PublicProfile = ({ username, onBack }) => {
 
           {/* Bio */}
           {profile.bio && (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
-              <p className="text-sm text-slate-700 leading-relaxed">{profile.bio}</p>
+            <div className="bg-white border-2 border-orange-200 rounded-xl p-4 mb-4 shadow-sm">
+              <p className="text-sm text-slate-800 leading-relaxed">{profile.bio}</p>
             </div>
           )}
 
@@ -883,12 +883,12 @@ const PublicProfile = ({ username, onBack }) => {
           {isTradie && profile.trades && profile.trades.length > 0 && (
             <div className="mb-4">
               <h3 className="text-sm font-extrabold text-slate-900 mb-2 flex items-center gap-2">
-                <HardHat size={16} className="text-blue-600" />
+                <HardHat size={16} className="text-orange-600" />
                 Services & Skills
               </h3>
               <div className="flex flex-wrap gap-2">
                 {profile.trades.map((trade, idx) => (
-                  <span key={idx} className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-xs font-bold shadow-lg">
+                  <span key={idx} className="px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-full text-xs font-bold shadow-lg">
                     {trade}
                   </span>
                 ))}
