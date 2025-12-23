@@ -796,7 +796,7 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                         <img 
                                             src={photoUrl} 
                                             alt={profile.name || profile.username} 
-                                            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md"
+                                            className={`w-10 h-10 rounded-full object-cover border-2 border-white shadow-md ${shouldBlurPhoto ? 'blur-md scale-105' : ''}`}
                                         />
                                     ) : (
                                         <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md">
@@ -959,7 +959,7 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                                         <img 
                                                             src={msg.senderPhoto || profile.primaryPhoto || profile.photo} 
                                                             alt={msg.senderName || profile.name || profile.username} 
-                                                            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg ring-2 ring-slate-200"
+                                                            className={`w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg ring-2 ring-slate-200 ${shouldBlurPhoto ? 'blur-md scale-105' : ''}`}
                                                         />
                                                     ) : (
                                                         <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 rounded-full border-2 border-white shadow-lg ring-2 ring-slate-200">
