@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { User, MessageCircle, MapPin, ShieldCheck, Star, CheckCircle, Briefcase, ArrowRight, X, DollarSign, Settings, LogOut, Send, Edit2, ClipboardList, AlertCircle, Camera, Image as ImageIcon, Navigation, Ban, Flag, Mail, ShoppingBag, ShoppingCart, Clock, Calendar, MoreHorizontal, Shield } from 'lucide-react';
 import { sendEmailVerification } from 'firebase/auth';
 import { collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, query, orderBy, where, increment, Timestamp, limit } from 'firebase/firestore';
@@ -2357,9 +2357,15 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
     const [reportType, setReportType] = useState('harassment');
     const [reportDetails, setReportDetails] = useState('');
     
-    // Calculate blur status for partner
-    const isPending = profilePictureRequests.some(req => req.userId === partner?.uid && req.status === 'pending');
-    const shouldBlurPartner = effectivePartner?.blurPhotos || isPending;
+    // Calculate blur status for partner - recalculates when partnerProfile or profilePictureRequests change
+    const isPending = useMemo(() => 
+        profilePictureRequests.some(req => req.userId === partner?.uid && req.status === 'pending'),
+        [profilePictureRequests, partner?.uid]
+    );
+    const shouldBlurPartner = useMemo(() => 
+        effectivePartner?.blurPhotos === true || isPending,
+        [effectivePartner?.blurPhotos, isPending]
+    );
     const handleReportSubmit = async () => {
         try {
             const recent = messages.slice(-10).map(m => ({
