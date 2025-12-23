@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { User, MessageCircle, MapPin, ShieldCheck, Star, CheckCircle, Briefcase, ArrowRight, X, DollarSign, Settings, LogOut, Send, Edit2, ClipboardList, AlertCircle, Camera, Image as ImageIcon, Navigation, Ban, Flag, Mail, ShoppingBag, ShoppingCart, Clock, Calendar, MoreHorizontal, Shield } from 'lucide-react';
+import { User, MessageCircle, MapPin, ShieldCheck, Star, CheckCircle, Briefcase, ArrowRight, X, DollarSign, Settings, LogOut, Send, Edit2, ClipboardList, AlertCircle, Camera, Image as ImageIcon, Navigation, Ban, Flag, Mail, ShoppingBag, ShoppingCart, Clock, Calendar, MoreHorizontal, Shield, Lock } from 'lucide-react';
 import { sendEmailVerification } from 'firebase/auth';
 import { collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, query, orderBy, where, increment, Timestamp, limit } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -277,7 +277,7 @@ const PostJobAdvert = ({ user, onCancel, onSuccess }) => {
   };
 
   return (
-    <div className="p-4 min-h-screen bg-white z-[60] absolute inset-0">
+    <div className="p-4 min-h-screen bg-slate-50">
        <button onClick={onCancel} className="mb-4 text-slate-500 flex items-center gap-1 font-bold"><ArrowRight className="rotate-180" size={16}/> Back</button>
        <h2 className="text-2xl font-bold mb-2">Post a Job Advert</h2>
        <p className="text-slate-500 mb-6 text-sm">Visible to verified tradies matching the category.</p>
@@ -349,16 +349,27 @@ const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
   };
 
   return (
-    <div className="p-4 min-h-screen bg-white z-[60] absolute inset-0">
-       <button onClick={onCancel} className="mb-4 text-slate-500 flex items-center gap-1 font-bold"><ArrowRight className="rotate-180" size={16}/> Back</button>
-       <h2 className="text-2xl font-bold mb-2">Hire {tradie.name || tradie.username}</h2>
-       <p className="text-slate-500 mb-6 text-sm">Send a direct request for work.</p>
-       
-       <Input label="Job Title" placeholder="e.g. Fix leaky tap" value={jobData.title} onChange={e => setJobData({...jobData, title: e.target.value})} />
-       <Input label="Description" textarea rows={4} placeholder="Describe the work needed..." value={jobData.description} onChange={e => setJobData({...jobData, description: e.target.value})} />
-       <Input label="Estimated Budget" placeholder="e.g. £100" value={jobData.budget} onChange={e => setJobData({...jobData, budget: e.target.value})} />
-       
-       <Button onClick={submitJob} variant="secondary" className="w-full mt-4">Send Request</Button>
+    <div className="px-4 py-6 pb-24 bg-slate-50">
+      <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-5 space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 mb-1">Hire {tradie.name || tradie.username}</h2>
+            <p className="text-slate-500 text-sm">Send a direct request for work.</p>
+          </div>
+          <Button variant="ghost" onClick={onCancel} className="text-slate-600 hover:text-orange-600 px-3 py-1.5">
+            <ArrowRight className="rotate-180" size={16} />
+          </Button>
+        </div>
+
+        <Input label="Job Title" placeholder="e.g. Fix leaky tap" value={jobData.title} onChange={e => setJobData({...jobData, title: e.target.value})} />
+        <Input label="Description" textarea rows={4} placeholder="Describe the work needed..." value={jobData.description} onChange={e => setJobData({...jobData, description: e.target.value})} />
+        <Input label="Estimated Budget" placeholder="e.g. £100" value={jobData.budget} onChange={e => setJobData({...jobData, budget: e.target.value})} />
+
+        <div className="flex gap-3 pt-2">
+          <Button variant="ghost" className="flex-1" onClick={onCancel}>Cancel</Button>
+          <Button onClick={submitJob} variant="secondary" className="flex-1">Send Request</Button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -2299,26 +2310,31 @@ const ChatList = ({ user, onSelectProfile, onSelectChat, onClose }) => {
                                          }
                                      }}
                                  >
-                                     {partner.primaryPhoto || partner.photo ? (
-                                         <div className="relative">
-                                             <img 
-                                                 src={partner.primaryPhoto || partner.photo} 
-                                                 alt={partner.name || 'User'} 
-                                                 className={`w-14 h-14 rounded-full object-cover border-2 shadow-md hover:border-orange-500 transition-all ${shouldBlurPartner ? 'border-orange-500 blur-md scale-105' : 'border-white'}`}
-                                             />
-                                             {shouldBlurPartner && (
-                                                 <div className="absolute inset-0 flex items-center justify-center">
-                                                     <div className="w-14 h-14 rounded-full border-2 border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
-                                                         <Shield size={20} className="text-orange-600" strokeWidth={2.5} />
-                                                     </div>
-                                                 </div>
-                                             )}
-                                         </div>
-                                     ) : (
-                                         <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md hover:border-orange-500 transition-all">
-                                             <User size={28} className="text-white"/>
-                                         </div>
-                                     )}
+                                    {partner.primaryPhoto || partner.photo ? (
+                                      <div className="relative w-14 h-14">
+                                        <div className="w-full h-full rounded-full p-[2px] bg-gradient-to-br from-slate-200 via-white to-slate-200 shadow-inner">
+                                          <div className="relative w-full h-full rounded-full overflow-hidden bg-slate-100">
+                                            <img
+                                              src={partner.primaryPhoto || partner.photo}
+                                              alt={partner.name || 'User'}
+                                              className={`w-full h-full object-cover ${shouldBlurPartner ? 'blur-md scale-105' : ''}`}
+                                            />
+                                            {shouldBlurPartner && <div className="absolute inset-0 bg-slate-900/15" />}
+                                          </div>
+                                        </div>
+                                        {shouldBlurPartner && (
+                                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div className="bg-black/55 text-white rounded-full p-[6px] border border-white/30 shadow">
+                                              <Lock size={14} />
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md hover:border-orange-500 transition-all">
+                                        <User size={28} className="text-white"/>
+                                      </div>
+                                    )}
                                      {hasUnread && (
                                          <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
                                              {unreadCount > 9 ? '9+' : unreadCount}
@@ -2378,16 +2394,14 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
     // Calculate blur status for partner - recalculates when partnerProfile or profilePictureRequests change
     const isPending = useMemo(() => {
         const pending = profilePictureRequests.some(req => req.userId === partner?.uid && req.status === 'pending');
-        console.log('[ChatRoom Blur] isPending:', pending, 'for user:', partner?.uid);
         return pending;
     }, [profilePictureRequests, partner?.uid]);
     
     const shouldBlurPartner = useMemo(() => {
-        const hasBlurPhotos = effectivePartner?.blurPhotos === true;
-        const shouldBlur = hasBlurPhotos || isPending;
-        console.log('[ChatRoom Blur] effectivePartner:', effectivePartner?.name, 'blurPhotos:', hasBlurPhotos, 'isPending:', isPending, 'shouldBlur:', shouldBlur);
-        return shouldBlur;
-    }, [effectivePartner?.blurPhotos, effectivePartner?.name, isPending]);
+        const hasBlurPhotos = effectivePartner?.blurPhotos === true || partner?.blurPhotos === true;
+        const isUnverified = effectivePartner?.verified === false || partner?.verified === false;
+        return hasBlurPhotos || isPending || isUnverified;
+    }, [effectivePartner?.blurPhotos, effectivePartner?.verified, partner?.blurPhotos, partner?.verified, isPending]);
     const handleReportSubmit = async () => {
         try {
             const recent = messages.slice(-10).map(m => ({
@@ -2718,20 +2732,24 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
                     title="View profile"
                 >
                     <div className="flex-shrink-0">
-                        {partner.photo ? (
-                            <div className="relative">
-                                <img 
-                                    src={partner.photo} 
-                                    alt={partner.name || partner.username} 
-                                    className={`w-10 h-10 rounded-full object-cover border-2 shadow-md ${shouldBlurPartner ? 'border-orange-500 blur-md scale-105' : 'border-white'}`}
-                                />
-                                {shouldBlurPartner && (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="w-10 h-10 rounded-full border-2 border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
-                                            <Shield size={16} className="text-orange-600" strokeWidth={2.5} />
+                        {partnerPhoto ? (
+                            <div className="relative w-11 h-11 rounded-full p-[2px] bg-gradient-to-br from-slate-200 via-white to-slate-200 shadow-inner border-2 border-white">
+                                <div className="relative w-full h-full rounded-full overflow-hidden bg-slate-100">
+                                    <img 
+                                        src={partnerPhoto} 
+                                        alt={effectivePartner?.name || effectivePartner?.username || partner.name || partner.username} 
+                                        className="w-full h-full object-cover"
+                                        style={shouldBlurPartner ? { filter: 'blur(12px)', WebkitFilter: 'blur(12px)', opacity: 0.45, transform: 'scale(1.08)' } : {}}
+                                    />
+                                    {shouldBlurPartner && <div className="absolute inset-0 bg-slate-900/15" />}
+                                    {shouldBlurPartner && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="bg-black/55 text-white rounded-full p-[5px] border border-white/30 shadow">
+                                                {partnerUnverified ? <Shield size={12} /> : <Lock size={12} />}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md">
@@ -2908,20 +2926,24 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
                         >
                             {!isMine && !isSystem && (
                                 <div className="flex-shrink-0">
-                                    {partner.photo ? (
-                                        <div className="relative">
-                                            <img 
-                                                src={partner.photo} 
-                                                alt={partner.name || partner.username} 
-                                                className={`w-8 h-8 rounded-full object-cover shadow-sm ${shouldBlurPartner ? 'border-2 border-orange-500 blur-md scale-105' : 'border border-white'}`}
-                                            />
-                                            {shouldBlurPartner && (
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <div className="w-8 h-8 rounded-full border border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
-                                                        <Shield size={12} className="text-orange-600" strokeWidth={2.5} />
+                                    {partnerPhoto ? (
+                                        <div className="relative w-9 h-9 rounded-full p-[1.5px] bg-gradient-to-br from-slate-200 via-white to-slate-200 shadow-inner border border-white">
+                                            <div className="relative w-full h-full rounded-full overflow-hidden bg-slate-100">
+                                                <img 
+                                                    src={partnerPhoto} 
+                                                    alt={effectivePartner?.name || effectivePartner?.username || partner.name || partner.username} 
+                                                    className="w-full h-full object-cover"
+                                                    style={shouldBlurPartner ? { filter: 'blur(12px)', WebkitFilter: 'blur(12px)', opacity: 0.45, transform: 'scale(1.08)' } : {}}
+                                                />
+                                                {shouldBlurPartner && <div className="absolute inset-0 bg-slate-900/15" />}
+                                                {shouldBlurPartner && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <div className="bg-black/55 text-white rounded-full p-[4px] border border-white/30 shadow">
+                                                            {partnerUnverified ? <Shield size={11} /> : <Lock size={11} />}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-slate-300 to-slate-400 rounded-full border border-white shadow-sm">
@@ -3873,4 +3895,3 @@ export {
   UserProfile, 
   ProfileLink 
 };
-
