@@ -2452,7 +2452,7 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
         return () => unsub();
     }, []);
 
-    // Fetch partner profile to ensure we know their role/trade
+    // Fetch partner profile to ensure we have full data including blurPhotos
     useEffect(() => {
         const loadPartner = async () => {
             if (!db || !partner?.uid) return;
@@ -2470,10 +2470,9 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
                 console.error('Failed to load partner profile for chat:', error);
             }
         };
-        if (!partnerProfile?.role) {
-            loadPartner();
-        }
-    }, [partner, partnerProfile]);
+        // Always load to ensure we have blurPhotos field
+        loadPartner();
+    }, [partner?.uid]);
 
     // Listen for conversation meta (blocked, violations)
     useEffect(() => {
