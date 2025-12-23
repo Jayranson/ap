@@ -2526,6 +2526,7 @@ const Feed = ({ user, userProfile, activeTab, setActiveTab, onMessage, onRequest
               ) : (
                  filteredHiringProfiles.map(p => {
                      const shouldUnblur = acceptedTradieIds.has(p.uid);
+                     const isPending = profilePictureRequests.some(req => req.userId === p.uid && req.status === 'pending');
                      return (
                          <TradieCard 
                              key={p.uid} 
@@ -2534,8 +2535,8 @@ const Feed = ({ user, userProfile, activeTab, setActiveTab, onMessage, onRequest
                              isTrusted={shouldUnblur}
                              onMessage={() => openChat(p)} 
                              onRequestJob={() => onRequestJob(p)}
-                            
-                            
+                             onOpenPublicProfile={onOpenPublicProfile}
+                             isPending={isPending}
                          />
                      );
                  })
@@ -2549,7 +2550,7 @@ const Feed = ({ user, userProfile, activeTab, setActiveTab, onMessage, onRequest
 };
 
 // Kept from GT1 for Hiring View
-const TradieCard = ({ profile, mode, isTrusted, onRequestJob }) => {
+const TradieCard = ({ profile, mode, isTrusted, onRequestJob, onOpenPublicProfile = () => {}, isPending = false }) => {
   // Use default cover photo based on role and email
   const coverPhotoUrl = getDefaultCoverPhoto(profile.email, profile.role);
   // Check if profile is admin - only check profile's email to show badge to all users
@@ -2581,20 +2582,24 @@ const TradieCard = ({ profile, mode, isTrusted, onRequestJob }) => {
                     profile={profile} 
                     size="xl" 
                     className="w-20 h-20" 
-                    blur={mode === 'hiring' && !isTrusted} 
+                    blur={(profile.blurPhotos || isPending) && auth?.currentUser?.uid !== profile.uid} 
                  />
-                 {mode === 'hiring' && !isTrusted && (
-                     <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-black/50 p-1 rounded-full text-white backdrop-blur-sm" title="Hire to unblur">
-                              <ShieldCheck size={16} />
-                          </div>
-                     </div>
-                 )}
              </div>
              
              <div className="flex gap-2 mb-1">
                  <Button variant="secondary" className="py-2 px-4 text-xs h-9 shadow-sm" onClick={onRequestJob}>
                     Request Job
+                 </Button>
+                 <Button
+                    variant="secondary"
+                    className="py-2 px-4 text-xs h-9 shadow-sm"
+                    onClick={() => {
+                        if (profile.username) {
+                            onOpenPublicProfile(profile.username);
+                        }
+                    }}
+                 >
+                    Profile
                  </Button>
              </div>
         </div>
@@ -2606,6 +2611,14 @@ const TradieCard = ({ profile, mode, isTrusted, onRequestJob }) => {
                     <h3 className="text-lg font-bold flex items-center gap-1 text-slate-900">
                         {profile.name || profile.username}{profile.hideAge ? '' : `, ${profile.age}`}
                     </h3>
+                    {profile.username && (
+                        <button
+                            onClick={() => onOpenPublicProfile(profile.username)}
+                            className="text-xs font-bold text-orange-600 hover:text-orange-700 underline"
+                        >
+                            @{profile.username}
+                        </button>
+                    )}
                     <div className="flex items-center text-xs text-slate-500 gap-1 mb-1">
                         <MapPin size={10} /> 
                         {profile.location}
@@ -2631,8 +2644,6 @@ const TradieCard = ({ profile, mode, isTrusted, onRequestJob }) => {
                     <Badge type="trade" text={profile.trade} />
                  </div>
             )}
-            
-            <p className="text-slate-600 text-sm line-clamp-2 mt-2">{profile.bio}</p>
         </div>
     </div>
   </div>
