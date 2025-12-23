@@ -1,9 +1,9 @@
-﻿/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   User, MessageCircle, ShieldCheck, Shield, Search, 
-  Briefcase, HardHat, AlertCircle, ShoppingBag, Image as ImageIcon, Star
+  Briefcase, HardHat, AlertCircle, ShoppingBag, Image as ImageIcon, Star, Lock
 } from 'lucide-react';
 
 // Firebase Imports
@@ -25,6 +25,7 @@ import {
   orderBy,
   limit
 } from 'firebase/firestore';
+import { addDoc } from 'firebase/firestore';
 
 // Local imports
 import { initializeFirebase, getAppId, auth, db } from './config/firebase';
@@ -530,7 +531,7 @@ export default function App() {
       case 'feed': return <Feed user={user} userProfile={userProfile} activeTab={activeTab} setActiveTab={setActiveTab} filter={feedFilter} clearFilter={() => setFeedFilter(null)} onMessage={(p) => { setSelectedProfile(p); setChatMode(true); setShowSocialModal(true); setChatBackView('feed'); }} onRequestJob={(p) => { setSelectedProfile(p); setView('requestJob'); }} acceptedTradieIds={acceptedTradieIds} onEnableLocation={updateLocation} showToast={showToast} profilePictureRequests={profilePictureRequests} unreadMessagesPerUser={unreadMessagesPerUser} onOpenPublicProfile={openPublicProfile} />;
       case 'postJobAdvert': return <PostJobAdvert user={user} onCancel={() => setView('feed')} onSuccess={() => { setView('jobs'); showToast("Advert Posted!", "success"); }} />;
       case 'messages': return <Feed user={user} userProfile={userProfile} activeTab={activeTab} setActiveTab={setActiveTab} filter={feedFilter} clearFilter={() => setFeedFilter(null)} onMessage={(p) => { setSelectedProfile(p); setChatBackView('feed'); setView('chat'); }} onRequestJob={(p) => { setSelectedProfile(p); setView('requestJob'); }} acceptedTradieIds={acceptedTradieIds} onEnableLocation={updateLocation} showToast={showToast} profilePictureRequests={profilePictureRequests} unreadMessagesPerUser={unreadMessagesPerUser} onOpenPublicProfile={openPublicProfile} />;
-      case 'chat': return <ChatRoom user={user} userProfile={userProfile} partner={selectedProfile} onBack={() => setView(chatBackView)} />;
+      case 'chat': return <ChatRoom user={user} userProfile={userProfile} partner={selectedProfile} onBack={() => setView(chatBackView)} onOpenPublicProfile={openPublicProfile} />;
       case 'requestJob': return <JobRequestForm user={user} userProfile={userProfile} tradie={selectedProfile} onCancel={() => setView('feed')} onSuccess={() => { setView('jobs'); showToast("Request Sent!", "success"); }} />;
       case 'jobs': return <JobManager user={user} userProfile={userProfile} showToast={showToast} onPendingCountChange={(count) => { setHasJobsNotification(count > 0); }} />;
       case 'shop': return <Shop user={user} showToast={showToast} onCartChange={(count) => setHasShopNotification(count > 0)} />;
@@ -636,14 +637,26 @@ export default function App() {
       {/* Main Content - with padding for fixed header */}
       <main className="flex-1 overflow-y-auto pb-20 scrollbar-hide animate-fade-in" style={{ paddingTop: view !== 'landing' && view !== 'onboarding' ? '64px' : '0' }}>
         {view === 'publicProfile' && publicProfileUser ? (
-          <PublicProfile
-            username={publicProfileUser}
-            onBack={() => {
-              setPublicProfileUser(null);
-              setView('feed');
-            }}
-          />
-        ) : renderView()}
+        <PublicProfile
+          username={publicProfileUser}
+          onBack={() => {
+            setPublicProfileUser(null);
+            setView('feed');
+          }}
+          onHire={(p) => {
+            setSelectedProfile(p);
+            setView('requestJob');
+          }}
+          onMessage={(p) => {
+            setSelectedProfile(p);
+            setChatMode(true);
+            setShowSocialModal(true);
+            setChatBackView('feed');
+            setView('feed');
+          }}
+          showToast={showToast}
+        />
+      ) : renderView()}
       </main>
 
       {/* Nav */}
@@ -685,11 +698,28 @@ export default function App() {
 
 // --- PUBLIC PROFILE PAGE ---
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const PublicProfile = ({ username, onBack }) => {
+const PublicProfile = ({ username, onBack, onHire, onMessage, showToast }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeSection, setActiveSection] = useState('about');
+  const [reviewStats, setReviewStats] = useState<{ avg: number | null; count: number }>({ avg: null, count: 0 });
+  const [hireCount, setHireCount] = useState(0);
+  const [hasWinked, setHasWinked] = useState(false);
+  const [winkSending, setWinkSending] = useState(false);
+  const aboutRef = useRef(null);
+  const galleryRef = useRef(null);
+  const reviewsRef = useRef(null);
+  const canMessage = !(profile?.jobOnlyVisibility && profile?.role === 'tradie');
+  const coverPhotoUrl = getDefaultCoverPhoto(profile?.email, profile?.role);
+  const tradeLabel = profile?.role === 'tradie'
+    ? (profile?.trade || (profile?.trades?.[0]) || 'Tradie')
+    : (profile?.role || 'Member');
+  const scrollTo = (ref) => {
+    if (ref?.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   useEffect(() => {
     if (!db || !username) return;
@@ -715,27 +745,112 @@ const PublicProfile = ({ username, onBack }) => {
     fetchProfile();
   }, [username]);
 
+  useEffect(() => {
+    setHasWinked(!!profile?._winked);
+  }, [profile]);
+
+  useEffect(() => {
+    if (!db || !profile?.id) return;
+
+    const fetchStats = async () => {
+      try {
+        // Reviews: only count client reviews of tradies
+        const revSnap = await getDocs(query(
+          collection(db, 'artifacts', getAppId(), 'public', 'data', 'job_reviews'),
+          where('reviewedUid', '==', profile.id),
+          where('reviewerRole', '==', 'client')
+        ));
+
+        if (!revSnap.empty) {
+          const reviews = revSnap.docs.map(d => d.data());
+          const count = reviews.length;
+          const avg = reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / count;
+          setReviewStats({ avg, count });
+        } else {
+          setReviewStats({ avg: null, count: 0 });
+        }
+
+        // Hire count: completed jobs for this tradie
+        const jobsSnap = await getDocs(query(
+          collection(db, 'artifacts', getAppId(), 'public', 'data', 'jobs'),
+          where('tradieUid', '==', profile.id),
+          where('status', '==', 'Completed')
+        ));
+        setHireCount(jobsSnap.size);
+      } catch (err) {
+        console.error('Failed to load profile stats', err);
+      }
+    };
+
+    fetchStats();
+  }, [db, profile?.id]);
+
+  const handleSendWink = async () => {
+    if (hasWinked) {
+      showToast?.("You've already winked.", 'info');
+      return;
+    }
+    try {
+      const currentUser = auth?.currentUser;
+      if (!currentUser || !db) {
+        showToast?.('Please sign in to send a wink.', 'error');
+        return;
+      }
+
+      const targetUid = profile?.uid || profile?.id;
+      if (!targetUid) {
+        showToast?.('Profile unavailable.', 'error');
+        return;
+      }
+
+      setWinkSending(true);
+      const currentUserDoc = await getDoc(doc(db, 'artifacts', getAppId(), 'public', 'data', 'profiles', currentUser.uid));
+      const currentUserData = currentUserDoc.data();
+
+      await addDoc(collection(db, 'artifacts', getAppId(), 'public', 'data', 'notifications'), {
+        userId: targetUid,
+        recipientId: targetUid,
+        type: 'wink',
+        from: currentUser.uid,
+        senderId: currentUser.uid,
+        fromName: currentUserData?.name || currentUserData?.username || 'Someone',
+        fromPhoto: currentUserData?.primaryPhoto || currentUserData?.photo || '',
+        read: false,
+        createdAt: serverTimestamp(),
+        timestamp: serverTimestamp()
+      });
+
+      setHasWinked(true);
+      showToast?.('Wink sent! 😉', 'success');
+    } catch (err) {
+      console.error('Error sending wink', err);
+      showToast?.('Failed to send wink', 'error');
+    } finally {
+      setWinkSending(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50">
         <div className="relative">
           <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
           <div className="absolute inset-0 w-16 h-16 border-4 border-orange-300 border-b-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
         </div>
-        <div className="text-orange-800 text-base font-bold mt-6 animate-pulse">Loading profile...</div>
+        <div className="text-slate-600 text-base font-bold mt-6 animate-pulse">Loading profile...</div>
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50 p-6 text-center">
-        <div className="bg-white rounded-3xl shadow-2xl border-2 border-orange-200 p-8 max-w-md">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 p-6 text-center">
+        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-200 p-8 max-w-md">
           <div className="bg-red-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="text-red-500" size={40} />
           </div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">Profile Not Found</h2>
-          <p className="text-slate-700 font-medium mb-6">{error || 'This profile is not available.'}</p>
+          <p className="text-slate-600 font-medium mb-6">{error || 'This profile is not available.'}</p>
           <Button variant="secondary" onClick={onBack} className="w-full">Go Back</Button>
         </div>
       </div>
@@ -747,171 +862,318 @@ const PublicProfile = ({ username, onBack }) => {
   const photoUrl = profile.primaryPhoto || profile.photo || `https://placehold.co/600x600/${isTradie ? '1e293b' : '64748b'}/ffffff?text=${(profile.name || 'U').charAt(0)}`;
 
   return (
-    <div className="h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50 overflow-hidden flex flex-col">
-      {/* Cover Photo with Back Button */}
-      <div className="relative h-32 bg-gradient-to-br from-orange-300 via-orange-400 to-amber-400 flex-shrink-0">
-        <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/40 via-transparent to-yellow-300/40"></div>
-        {/* Back Button */}
-        <div className="absolute top-3 left-3 z-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 overflow-y-auto pb-20">
+      {/* Header with Back Button */}
+      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b-2 border-slate-200 shadow-lg">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <button 
             onClick={onBack}
-            className="flex items-center gap-2 text-white hover:text-orange-50 transition-all duration-300 font-bold group bg-white/30 backdrop-blur-md rounded-xl px-3 py-2 shadow-lg hover:bg-white/40"
+            className="flex items-center gap-2 text-slate-700 hover:text-orange-600 transition-all duration-300 font-bold group"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-            </svg>
+            <div className="p-2 rounded-xl bg-slate-100 group-hover:bg-orange-100 transition-all duration-300 group-hover:scale-110">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </div>
             <span className="text-sm">Back</span>
           </button>
+          <div className="text-sm font-bold text-slate-900">Public Profile</div>
+          <div className="w-20"></div>
         </div>
-        {isTradie && (
-          <div className="absolute top-3 right-3 bg-white/40 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/50 shadow-lg">
-            <div className="flex items-center gap-1.5">
-              <HardHat size={16} className="text-orange-800" />
-              <span className="text-orange-900 font-bold text-sm">Tradie</span>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        {/* Cover Photo & Profile Header Card */}
+        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-200 overflow-hidden">
+          {/* Cover Photo */}
+          <div className="relative h-40 overflow-hidden">
+            <img
+              src={coverPhotoUrl}
+              alt="Cover"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent"></div>
+            {isTradie && (
+              <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full px-4 py-2 border-2 border-white/40 shadow-xl">
+                <div className="flex items-center gap-2">
+                  <HardHat size={18} className="text-white" />
+                  <span className="text-white font-bold text-sm">{tradeLabel}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Profile Info Section */}
+          <div className="relative px-6 pb-6">
+            {/* Avatar */}
+            <div className="relative -mt-16 mb-4">
+              <div className="w-32 h-32 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-slate-100 ring-4 ring-orange-200 relative">
+                <img 
+                  src={photoUrl} 
+                  alt={profile.name} 
+                  className={`w-full h-full object-cover ${profile.blurPhotos ? 'blur-md scale-105' : ''}`}
+                  onError={(e) => { e.target.src = photoUrl; }}
+                />
+                {profile.blurPhotos && (
+                  <div className="absolute inset-0 bg-slate-900/10" />
+                )}
+              </div>
+              {isAdmin && (
+                <div className="absolute bottom-0 right-0 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 rounded-full p-2 border-4 border-white shadow-xl animate-pulse">
+                  <Shield size={20} className="text-white fill-white" />
+                </div>
+              )}
+              {!isAdmin && profile.verified && (
+                <div className="absolute bottom-0 right-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-2 border-4 border-white shadow-xl">
+                  <ShieldCheck size={20} className="text-white" />
+                </div>
+              )}
+            </div>
+
+            {/* Name & Username */}
+            <div className="mb-4">
+              <div className="flex items-center gap-3 flex-wrap mb-2">
+                <h1 className="text-3xl font-extrabold text-slate-900">{profile.name || profile.username}</h1>
+                {profile.blurPhotos && (
+                  <span className="flex items-center gap-1 text-xs font-bold text-slate-500">
+                    <Lock size={14} /> Photo blurred
+                  </span>
+                )}
+                {isAdmin && (
+                  <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-xs font-bold shadow-lg">
+                    ADMIN
+                  </span>
+                )}
+                {!isAdmin && profile.verified && (
+                  <span className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold shadow-lg">
+                    VERIFIED
+                  </span>
+                )}
+              </div>
+              {profile.username && (
+                <p className="text-base font-bold text-orange-600 mb-2">@{profile.username}</p>
+              )}
+              <div className="flex items-center gap-4 flex-wrap text-sm text-slate-600">
+                <div className="flex items-center gap-2">
+                  <User size={16} className="text-slate-400" />
+                  <span className="font-semibold capitalize">{tradeLabel}</span>
+                </div>
+                {profile.location && (
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="font-medium">{profile.location}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Rate Display for Tradies */}
+            {isTradie && profile.rate && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Hourly Rate</p>
+                    <p className="text-3xl font-extrabold text-green-900">£{profile.rate}<span className="text-base text-green-600">/hr</span></p>
+                  </div>
+                  <div className="bg-green-500 rounded-full p-3 shadow-lg">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <Button
+                variant="secondary"
+                className="w-full py-4 text-base font-bold shadow-xl hover:shadow-2xl disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={!canMessage}
+                onClick={() => {
+                  if (!canMessage) return;
+                  onMessage?.(profile);
+                }}
+              >
+                <MessageCircle size={20} className="mr-2" /> {canMessage ? 'Message' : 'Social off'}
+              </Button>
+              {isTradie ? (
+                <Button
+                  variant="primary"
+                  className="w-full py-4 text-base font-bold shadow-xl hover:shadow-2xl"
+                  onClick={() => onHire?.(profile)}
+                >
+                  <HardHat size={20} className="mr-2" /> Hire
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  className="w-full py-4 text-base font-bold shadow-xl hover:shadow-2xl disabled:opacity-70 disabled:cursor-not-allowed"
+                  disabled={hasWinked || winkSending}
+                  onClick={handleSendWink}
+                >
+                  <span className="text-lg mr-2">😉</span> Wink
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-2">
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setActiveSection('about');
+                scrollTo(aboutRef);
+              }}
+              className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
+                activeSection === 'about'
+                  ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-lg scale-105'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              About
+            </button>
+            <button
+              onClick={() => {
+                setActiveSection('gallery');
+                scrollTo(galleryRef);
+              }}
+              className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
+                activeSection === 'gallery'
+                  ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-lg scale-105'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              Gallery
+            </button>
+            {isTradie && (
+              <button
+                onClick={() => {
+                  setActiveSection('reviews');
+                  scrollTo(reviewsRef);
+                }}
+                className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
+                  activeSection === 'reviews'
+                    ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-lg scale-105'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                Reviews
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Content Sections */}
+        {activeSection === 'about' && (
+          <div ref={aboutRef} className="space-y-4 animate-fade-in">
+            {/* Bio */}
+            {profile.bio ? (
+              <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="bg-orange-100 p-2 rounded-lg">
+                    <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-extrabold text-slate-900">About Me</h3>
+                </div>
+                <p className="text-base text-slate-700 leading-relaxed">{profile.bio}</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-8 text-center">
+                <div className="bg-slate-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="text-slate-400" size={32} />
+                </div>
+                <p className="text-slate-500 font-medium">No bio available yet</p>
+              </div>
+            )}
+
+            {/* Skills/Services for Tradies */}
+            {isTradie && (
+              <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <HardHat size={20} className="text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-extrabold text-slate-900">Services & Skills</h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {profile.trades && profile.trades.length > 0 ? (
+                    profile.trades.map((trade, idx) => (
+                      <span key={idx} className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-sm font-bold shadow-lg">
+                        {trade}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="px-4 py-2 bg-slate-100 text-slate-600 rounded-full text-sm font-bold">
+                      General Services
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl shadow-lg border-2 border-orange-200 p-4 text-center">
+                <div className="text-3xl font-extrabold text-orange-600 mb-1">
+                  {hireCount || profile.jobsCompleted || 0}
+                </div>
+                <div className="text-xs font-bold text-orange-800 uppercase tracking-wide">
+                  {isTradie ? 'Jobs Done' : 'Hired'}
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg border-2 border-green-200 p-4 text-center">
+                {(() => {
+                  const ratingValue = reviewStats.avg !== null
+                    ? reviewStats.avg
+                    : (profile.rating ? Number(profile.rating) : 5.0);
+                  const ratingColor = ratingValue < 0 ? 'text-red-600' : ratingValue < 4 ? 'text-yellow-600' : 'text-green-600';
+                  return (
+                    <>
+                      <div className={`text-3xl font-extrabold mb-1 ${ratingColor}`}>
+                        {ratingValue.toFixed(1)}
+                      </div>
+                      <div className="text-xs font-bold text-green-800 uppercase tracking-wide">Rating</div>
+                    </>
+                  );
+                })()}
+              </div>
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-lg border-2 border-blue-200 p-4 text-center">
+                <div className="text-3xl font-extrabold text-blue-600 mb-1">
+                  {reviewStats.count || profile.reviewCount || profile.reviews || 0}
+                </div>
+                <div className="text-xs font-bold text-blue-800 uppercase tracking-wide">Reviews</div>
+              </div>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-orange-50 via-amber-50 to-white">
-        <div className="px-5 pb-6">
-          {/* Avatar */}
-          <div className="relative -mt-12 mb-4">
-            <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl overflow-hidden bg-orange-100 ring-4 ring-orange-300">
-              <img 
-                src={photoUrl} 
-                alt={profile.name} 
-                className="w-full h-full object-cover"
-                onError={(e) => { e.target.src = photoUrl; }}
-              />
+        {activeSection === 'gallery' && (
+          <div ref={galleryRef} className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-8 text-center animate-fade-in">
+            <div className="bg-slate-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+              <ImageIcon className="text-slate-400" size={40} />
             </div>
-            {isAdmin && (
-              <div className="absolute bottom-0 right-0 bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 rounded-full p-1.5 border-3 border-white shadow-xl animate-pulse">
-                <Shield size={16} className="text-white fill-white" />
-              </div>
-            )}
-            {!isAdmin && profile.verified && (
-              <div className="absolute bottom-0 right-0 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full p-1.5 border-3 border-white shadow-xl">
-                <ShieldCheck size={16} className="text-white" />
-              </div>
-            )}
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Gallery Coming Soon</h3>
+            <p className="text-slate-600">Photo gallery will be available here</p>
           </div>
+        )}
 
-          {/* Name & Username */}
-          <div className="mb-4">
-            <div className="flex items-center gap-2 flex-wrap mb-2">
-              <h1 className="text-2xl font-extrabold text-slate-900">{profile.name || profile.username}</h1>
-              {isAdmin && (
-                <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-400 to-purple-500 text-white text-xs font-bold shadow-lg">
-                  ADMIN
-                </span>
-              )}
-              {!isAdmin && profile.verified && (
-                <span className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-400 to-blue-500 text-white text-xs font-bold shadow-lg">
-                  VERIFIED
-                </span>
-              )}
+        {activeSection === 'reviews' && isTradie && (
+          <div ref={reviewsRef} className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-8 text-center animate-fade-in">
+            <div className="bg-yellow-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+              <Star className="text-yellow-500 fill-yellow-500" size={40} />
             </div>
-            {profile.username && (
-              <p className="text-base font-bold text-orange-600 mb-2">@{profile.username}</p>
-            )}
-            <div className="flex items-center gap-4 flex-wrap text-sm text-slate-700">
-              <div className="flex items-center gap-2">
-                <User size={14} className="text-orange-500" />
-                <span className="font-semibold capitalize">{profile.role || 'member'}</span>
-              </div>
-              {profile.location && (
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span className="font-medium">{profile.location}</span>
-                </div>
-              )}
-            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Reviews Coming Soon</h3>
+            <p className="text-slate-600">Customer reviews will be displayed here</p>
           </div>
-
-          {/* Bio */}
-          {profile.bio && (
-            <div className="bg-white border-2 border-orange-200 rounded-xl p-4 mb-4 shadow-sm">
-              <p className="text-sm text-slate-800 leading-relaxed">{profile.bio}</p>
-            </div>
-          )}
-
-          {/* Rate Display for Tradies */}
-          {isTradie && profile.rate && (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Hourly Rate</p>
-                  <p className="text-2xl font-extrabold text-green-900">£{profile.rate}<span className="text-sm text-green-600">/hr</span></p>
-                </div>
-                <div className="bg-green-500 rounded-full p-3 shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border-2 border-orange-200 p-4 text-center shadow-md">
-              <div className="text-2xl font-extrabold text-orange-600 mb-1">
-                {profile.jobsCompleted || 0}
-              </div>
-              <div className="text-[10px] font-bold text-orange-800 uppercase tracking-wide">Jobs Done</div>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200 p-4 text-center shadow-md">
-              <div className="text-2xl font-extrabold text-green-600 mb-1">
-                {profile.rating ? profile.rating.toFixed(1) : '5.0'}
-              </div>
-              <div className="text-[10px] font-bold text-green-800 uppercase tracking-wide">Rating</div>
-            </div>
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 p-4 text-center shadow-md">
-              <div className="text-2xl font-extrabold text-blue-600 mb-1">
-                {profile.reviewCount || 0}
-              </div>
-              <div className="text-[10px] font-bold text-blue-800 uppercase tracking-wide">Reviews</div>
-            </div>
-          </div>
-
-          {/* Skills/Services for Tradies */}
-          {isTradie && profile.trades && profile.trades.length > 0 && (
-            <div className="mb-4">
-              <h3 className="text-sm font-extrabold text-slate-900 mb-2 flex items-center gap-2">
-                <HardHat size={16} className="text-orange-600" />
-                Services & Skills
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {profile.trades.map((trade, idx) => (
-                  <span key={idx} className="px-3 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-full text-xs font-bold shadow-lg">
-                    {trade}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="secondary" className="w-full py-3 text-base font-bold shadow-lg">
-              <MessageCircle size={18} className="mr-2" /> Message
-            </Button>
-            {isTradie ? (
-              <Button variant="primary" className="w-full py-3 text-base font-bold shadow-lg">
-                <HardHat size={18} className="mr-2" /> Hire
-              </Button>
-            ) : (
-              <Button variant="outline" className="w-full py-3 text-base font-bold">
-                <Star size={18} className="mr-2" /> Favorite
-              </Button>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
