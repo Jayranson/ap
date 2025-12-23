@@ -2313,6 +2313,7 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
     const [partnerProfile, setPartnerProfile] = useState(partner);
     const [showSafetyToast, setShowSafetyToast] = useState(partner?.role === 'tradie');
     const [violationToast, setViolationToast] = useState('');
+    const [profilePictureRequests, setProfilePictureRequests] = useState([]);
     const conversationId = [user.uid, partner.uid].sort().join('_'); 
     const scrollRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -2323,6 +2324,10 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportType, setReportType] = useState('harassment');
     const [reportDetails, setReportDetails] = useState('');
+    
+    // Calculate blur status for partner
+    const isPending = profilePictureRequests.some(req => req.userId === partner?.uid && req.status === 'pending');
+    const shouldBlurPartner = effectivePartner?.blurPhotos || isPending;
     const handleReportSubmit = async () => {
         try {
             const recent = messages.slice(-10).map(m => ({
@@ -2403,6 +2408,17 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
         const latestMs = messages[messages.length - 1]?.createdAt?.toMillis?.() || Date.now();
         writeReceipt('read', latest, latestMs);
     }, [messages, writeReceipt]);
+
+    // Fetch profile picture verification requests for blur detection
+    useEffect(() => {
+        if (!db) return;
+        const q = query(collection(db, 'artifacts', getAppId(), 'private', 'data', 'profilePictureVerification'));
+        const unsub = onSnapshot(q, (snap) => {
+            const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setProfilePictureRequests(requests);
+        });
+        return () => unsub();
+    }, []);
 
     // Fetch partner profile to ensure we know their role/trade
     useEffect(() => {
@@ -2639,7 +2655,7 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
                             <img 
                                 src={partner.photo} 
                                 alt={partner.name || partner.username} 
-                                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md"
+                                className={`w-10 h-10 rounded-full object-cover border-2 border-white shadow-md ${shouldBlurPartner ? 'blur-md scale-105' : ''}`}
                             />
                         ) : (
                             <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md">
@@ -2820,7 +2836,7 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
                                         <img 
                                             src={partner.photo} 
                                             alt={partner.name || partner.username} 
-                                            className="w-8 h-8 rounded-full object-cover border border-white shadow-sm"
+                                            className={`w-8 h-8 rounded-full object-cover border border-white shadow-sm ${shouldBlurPartner ? 'blur-md scale-105' : ''}`}
                                         />
                                     ) : (
                                         <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-slate-300 to-slate-400 rounded-full border border-white shadow-sm">
