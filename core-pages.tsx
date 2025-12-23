@@ -2464,20 +2464,28 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
 
     // Fetch partner profile to ensure we have full data including blurPhotos
     useEffect(() => {
+        console.log('[ChatRoom] Component mounted/updated, partner.uid:', partner?.uid);
         const loadPartner = async () => {
-            if (!db || !partner?.uid) return;
+            if (!db || !partner?.uid) {
+                console.log('[ChatRoom] Skipping loadPartner - no db or partner.uid');
+                return;
+            }
+            console.log('[ChatRoom] Loading partner profile from Firestore for:', partner.uid);
             try {
                 const profileDoc = await getDoc(doc(db, 'artifacts', getAppId(), 'public', 'data', 'profiles', partner.uid));
                 if (profileDoc.exists()) {
                     const data = { uid: partner.uid, ...profileDoc.data() };
+                    console.log('[ChatRoom] Partner profile loaded:', data.name, 'blurPhotos:', data.blurPhotos);
                     setPartnerProfile(data);
                     if (data.role === 'tradie') {
                         setHasWorkConsent(false);
                         setShowSafetyToast(true);
                     }
+                } else {
+                    console.log('[ChatRoom] Partner profile document does not exist');
                 }
             } catch (error) {
-                console.error('Failed to load partner profile for chat:', error);
+                console.error('[ChatRoom] Failed to load partner profile for chat:', error);
             }
         };
         // Always load to ensure we have blurPhotos field
