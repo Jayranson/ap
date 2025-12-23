@@ -912,11 +912,14 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
             )}
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-50 to-white">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-50">
                             {messages.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                                    <MessageCircle className="w-16 h-16 text-slate-300 mb-4" />
-                                    <p className="text-slate-500 text-sm">Start your conversation!</p>
+                                <div className="flex flex-col items-center justify-center h-full text-center py-16">
+                                    <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-full p-6 mb-5 shadow-xl">
+                                        <MessageCircle className="w-20 h-20 text-slate-400" strokeWidth={2} />
+                                    </div>
+                                    <p className="text-slate-600 text-base font-semibold">Start your conversation!</p>
+                                    <p className="text-slate-400 text-sm mt-2">Send a message to connect</p>
                                 </div>
                             ) : (
                                 messages.map((msg) => {
@@ -947,7 +950,7 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                     return (
                                         <div
                                             key={msg.id}
-                                            className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'} ${msg._animate ? 'animate-popIn' : ''}`}
+                                            className={`flex items-end gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'} ${msg._animate ? 'animate-popIn' : ''}`}
                                             onDoubleClick={handleLike}
                                             onTouchEnd={handleTap}
                                         >
@@ -957,39 +960,39 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                                         <img 
                                                             src={msg.senderPhoto || profile.primaryPhoto || profile.photo} 
                                                             alt={msg.senderName || profile.name || profile.username} 
-                                                            className="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-sm"
+                                                            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg ring-2 ring-slate-200"
                                                         />
                                                     ) : (
-                                                        <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border border-slate-200 shadow-sm">
-                                                            <User size={14} className="text-white"/>
+                                                        <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 rounded-full border-2 border-white shadow-lg ring-2 ring-slate-200">
+                                                            <User size={16} className="text-white" strokeWidth={2.5} />
                                                         </div>
                                                     )}
                                                 </div>
                                             )}
-                            <div className={`max-w-[70%] ${isMe ? '' : ''}`}>
-                                <div className="space-y-1">
-                                <div className={`px-4 py-2 rounded-2xl shadow-md ${
+                            <div className={`max-w-[75%] ${isMe ? '' : ''}`}>
+                                <div className="space-y-2">
+                                <div className={`px-5 py-3 rounded-2xl shadow-lg ${
                                     isMe 
-                                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' 
-                                        : 'bg-white text-slate-800 border border-slate-200'
+                                        ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white border-2 border-white/20' 
+                                        : 'bg-white text-slate-800 border-2 border-slate-200'
                                 }`}>
                                     {msg.imageUrl ? (
                                         <div onClick={() => window.open(msg.imageUrl, '_blank')} className="cursor-zoom-in">
-                                            <LazyImage src={msg.thumbUrl || msg.imageUrl} alt="Sent image" className="max-h-60 rounded-xl" />
+                                            <LazyImage src={msg.thumbUrl || msg.imageUrl} alt="Sent image" className="max-h-64 rounded-xl shadow-md" />
                                         </div>
                                     ) : (
-                                        <p className="text-sm break-words leading-relaxed">{msg.text}</p>
+                                        <p className="text-sm break-words leading-relaxed font-medium">{msg.text}</p>
                                     )}
                                 </div>
                                     {likes.length > 0 && (
-                                        <div className={`flex items-center gap-1 text-[11px] font-semibold mt-1 ${isMe ? 'justify-end text-white' : 'text-orange-600'}`}>
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-100 shadow-sm">
+                                        <div className={`flex items-center gap-1 text-xs font-bold mt-1 ${isMe ? 'justify-end' : ''}`}>
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-red-50 to-orange-50 text-orange-700 border-2 border-orange-200 shadow-md">
                                                 ❤️ {likes.length}
                                             </span>
                                         </div>
                                     )}
                                     {isMe && (
-                                        <div className="flex items-center justify-end gap-1 text-[10px] mt-1 text-slate-500">
+                                        <div className="flex items-center justify-end gap-1.5 text-[10px] mt-1 text-slate-500 font-semibold">
                                             {(() => {
                                                 const createdMs = msg.createdAt?.toMillis?.() || 0;
                                                 const deliveredMs = otherReceipts?.lastDeliveredAt?.toMillis?.();
@@ -1001,7 +1004,7 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                                         : 'Sent';
                                                 return (
                                                     <>
-                                                        <CheckCircle size={12} className="text-white" />
+                                                        <CheckCircle size={12} className="text-slate-400" strokeWidth={2.5} />
                                                         <span>{status}</span>
                                                     </>
                                                 );
@@ -1018,15 +1021,15 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                         </div>
 
                         {/* Input Area */}
-                        <div className="p-4 border-t-2 border-slate-200 bg-gradient-to-t from-slate-50 to-white">
-                            <div className="flex gap-2 items-center">
+                        <div className="p-5 border-t-2 border-slate-200 bg-gradient-to-t from-slate-50 via-white to-white shadow-lg">
+                            <div className="flex gap-3 items-center">
                                 <input
                                     type="text"
                                     value={messageText}
                                     onChange={(e) => setMessageText(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                                     placeholder="Type a message..."
-                                    className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 shadow-md hover:border-slate-300 transition-all"
+                                    className="flex-1 px-5 py-3.5 border-2 border-slate-300 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-orange-500/30 focus:border-orange-500 shadow-lg hover:border-slate-400 transition-all font-medium"
                                     disabled={sending}
                                 />
                                 <input
@@ -1038,31 +1041,31 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                 />
                                 <button
                                     onClick={handleChooseImage}
-                                    className="p-3 bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 active:scale-95 transition-all shadow-sm disabled:opacity-50"
+                                    className="p-3.5 bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 rounded-2xl hover:from-slate-200 hover:to-slate-300 active:scale-95 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 border-2 border-slate-300"
                                     title="Send image"
                                     disabled={uploadingImage}
                                 >
-                                    <ImageIcon size={20} />
+                                    <ImageIcon size={22} strokeWidth={2.5} />
                                 </button>
                                 <button
                                     onClick={handleSendMessage}
                                     disabled={!messageText.trim() || sending}
-                                    className="p-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white rounded-full transition-all shadow-lg hover:shadow-xl disabled:shadow-none hover:scale-105 active:scale-95"
+                                    className="p-4 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 hover:from-orange-600 hover:via-orange-700 hover:to-orange-800 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed text-white rounded-2xl transition-all shadow-2xl hover:shadow-orange-500/50 disabled:shadow-none hover:scale-110 active:scale-95 border-2 border-white/20"
                                 >
-                                    <Send size={20} />
+                                    <Send size={22} strokeWidth={2.5} />
                                 </button>
                             </div>
                         </div>
 
                         {/* Block Confirmation Modal */}
                         {showBlockConfirm && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                                <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
-                                    <h3 className="text-lg font-bold text-slate-900 mb-2">Block User?</h3>
-                                    <p className="text-sm text-slate-600 mb-4">
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                                <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-2 border-slate-200">
+                                    <h3 className="text-xl font-extrabold text-slate-900 mb-3">Block User?</h3>
+                                    <p className="text-sm text-slate-600 mb-6 leading-relaxed">
                                         You won't see this profile anymore and they won't be able to contact you.
                                     </p>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-3">
                                         <Button variant="ghost" className="flex-1" onClick={() => setShowBlockConfirm(false)}>
                                             Cancel
                                         </Button>
