@@ -611,7 +611,7 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
 
     return (
         <div 
-            className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center animate-fade-in p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center animate-fade-in p-4"
             onClick={(e) => {
                 // Close if clicking the backdrop
                 if (e.target === e.currentTarget) {
@@ -619,7 +619,7 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                 }
             }}
         >
-            <div className="bg-white w-full max-w-sm h-[60vh] rounded-2xl overflow-hidden shadow-2xl relative flex flex-col animate-scale-in">
+            <div className="bg-white w-full max-w-sm h-[70vh] rounded-3xl overflow-hidden shadow-2xl border-2 border-slate-200 relative flex flex-col animate-scale-in">
                 
                 {!chatMode ? (
                     // PROFILE VIEW - Full screen image with overlays
@@ -636,31 +636,31 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                         </div>
 
                         {/* Close Button */}
-                        <button onClick={onClose} className="absolute top-4 right-4 z-20 bg-white/20 hover:bg-white/30 text-white p-2.5 rounded-xl backdrop-blur-md transition-all duration-300 shadow-lg hover:shadow-xl active:scale-90">
-                            <X className="w-5 h-5" />
+                        <button onClick={onClose} className="absolute top-4 right-4 z-20 bg-white/25 hover:bg-white/35 text-white p-3 rounded-2xl backdrop-blur-lg transition-all duration-300 shadow-xl hover:shadow-2xl active:scale-90 border border-white/30">
+                            <X className="w-6 h-6" strokeWidth={2.5} />
                         </button>
 
                         {/* Block Button */}
                         <button
                             onClick={() => setShowBlockConfirm(true)}
-                            className="absolute top-4 left-4 z-20 bg-white/20 hover:bg-white/30 text-white p-2.5 rounded-xl backdrop-blur-md transition-all duration-300 shadow-lg hover:shadow-xl active:scale-90"
+                            className="absolute top-4 left-4 z-20 bg-white/25 hover:bg-white/35 text-white p-3 rounded-2xl backdrop-blur-lg transition-all duration-300 shadow-xl hover:shadow-2xl active:scale-90 border border-white/30"
                             title="Block user"
                         >
-                            <Ban className="w-5 h-5" />
+                            <Ban className="w-6 h-6" strokeWidth={2.5} />
                         </button>
 
                         {/* Pending/Lock Overlays */}
                         {isPending && (
-                            <div className="absolute inset-0 flex items-center justify-center z-10">
-                                <div className="bg-orange-500 text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg">
+                            <div className="absolute inset-0 flex items-center justify-center z-10 backdrop-blur-sm">
+                                <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white text-sm font-extrabold px-6 py-3 rounded-2xl shadow-2xl border-2 border-white/30 animate-pulse">
                                     PENDING REVIEW
                                 </div>
                             </div>
                         )}
                         {shouldBlurPhoto && !isPending && (
-                            <div className="absolute inset-0 flex items-center justify-center z-10">
-                                <div className="bg-black/50 p-3 rounded-full text-white backdrop-blur-sm">
-                                    <Lock size={32} />
+                            <div className="absolute inset-0 flex items-center justify-center z-10 backdrop-blur-sm">
+                                <div className="bg-black/60 p-4 rounded-2xl text-white backdrop-blur-md border-2 border-white/20 shadow-2xl">
+                                    <Lock size={40} strokeWidth={2.5} />
                                 </div>
                             </div>
                         )}
@@ -668,19 +668,19 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                         {/* Content Overlay - Scrollable */}
                         <div className="absolute inset-0 flex flex-col z-10">
                             {/* Top Section - Name and Location */}
-                            <div className="p-6 pt-16">
-                                <h3 className="text-4xl font-extrabold text-white leading-tight mb-2 drop-shadow-lg flex items-center gap-2">
+                            <div className="p-6 pt-20">
+                                <h3 className="text-4xl font-extrabold text-white leading-tight mb-3 drop-shadow-2xl flex items-center gap-2">
                                     <span>{profile.name || profile.username}{profile.hideAge ? '' : `, ${profile.age}`}</span>
                                     {profile.email === ADMIN_EMAIL ? (
-                                        <span className="p-1.5 rounded-full bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 border border-white/30 shadow-lg shadow-purple-300/60">
-                                            <Shield size={16} className="text-white fill-white drop-shadow" />
+                                        <span className="p-2 rounded-full bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 border-2 border-white/50 shadow-2xl animate-pulse">
+                                            <Shield size={18} className="text-white fill-white drop-shadow-lg" />
                                         </span>
                                     ) : (
-                                        profile.verified && <ShieldCheck size={22} className="text-blue-400 fill-white drop-shadow" />
+                                        profile.verified && <ShieldCheck size={24} className="text-blue-400 fill-white drop-shadow-2xl" />
                                     )}
                                 </h3>
                                 {profile.username && (
-                                    <p className="text-xs font-bold text-orange-100 drop-shadow-lg -mt-1">
+                                    <p className="text-sm font-bold text-orange-100 drop-shadow-xl mb-2">
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -691,14 +691,14 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                                     window.dispatchEvent(new CustomEvent('open-public-profile', { detail: { username: profile.username } }));
                                                 }
                                             }}
-                                            className="px-2 py-0.5 bg-white/15 rounded-full border border-white/20 backdrop-blur-sm shadow-sm hover:bg-white/25 transition"
+                                            className="px-3 py-1.5 bg-white/20 rounded-full border-2 border-white/30 backdrop-blur-md shadow-lg hover:bg-white/30 transition-all duration-300 hover:scale-105"
                                         >
                                             @{profile.username}
                                         </button>
                                     </p>
                                 )}
-                                <p className="text-base text-white/90 flex items-center font-medium drop-shadow-md">
-                                    <MapPin className="w-4 h-4 mr-1 text-orange-400" />
+                                <p className="text-base text-white/95 flex items-center font-semibold drop-shadow-lg">
+                                    <MapPin className="w-5 h-5 mr-2 text-orange-400 drop-shadow" strokeWidth={2.5} />
                                     {locationDisplay}
                                 </p>
                             </div>
@@ -708,12 +708,12 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                 {/* Badges */}
                                 <div className="flex flex-wrap gap-2 mb-4">
                                     {profile.sexuality && (
-                                        <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-bold border border-white/30">
+                                        <span className="bg-white/25 backdrop-blur-md text-white px-4 py-2 rounded-2xl text-xs font-extrabold border-2 border-white/40 shadow-xl">
                                             {profile.sexuality}
                                         </span>
                                     )}
                                     {profile.lookingFor && (
-                                        <span className="bg-green-500/80 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-bold border border-white/30">
+                                        <span className="bg-gradient-to-r from-green-500 to-green-600 backdrop-blur-md text-white px-4 py-2 rounded-2xl text-xs font-extrabold border-2 border-white/40 shadow-xl">
                                             Looking for: {profile.lookingFor}
                                         </span>
                                     )}
@@ -721,28 +721,31 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
 
                                 {/* Bio */}
                                 {profile.bio && (
-                                    <div className="bg-black/30 backdrop-blur-md p-4 rounded-xl mb-4">
-                                        <h4 className="text-[11px] font-bold text-white/80 uppercase tracking-wider mb-2">Bio</h4>
+                                    <div className="bg-black/40 backdrop-blur-xl p-5 rounded-2xl mb-4 border-2 border-white/20 shadow-2xl">
+                                        <h4 className="text-xs font-extrabold text-white/90 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <User size={14} className="text-orange-400" />
+                                            About
+                                        </h4>
                                         <p className="text-white text-sm leading-relaxed">{profile.bio}</p>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Message Input - Same as chat view */}
-                            <div className="p-4 border-t-2 border-slate-200 bg-gradient-to-t from-slate-50 to-white">
-                                <div className="flex gap-2 items-center">
+                            {/* Message Input - Enhanced */}
+                            <div className="p-5 border-t-2 border-white/20 bg-gradient-to-t from-black/50 via-black/30 to-transparent backdrop-blur-xl">
+                                <div className="flex gap-3 items-center">
                                     <input
                                         type="text"
                                         value={messageText}
                                         onChange={(e) => setMessageText(e.target.value)}
                                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                                         placeholder="Type a message..."
-                                        className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 shadow-md hover:border-slate-300 transition-all"
+                                        className="flex-1 px-5 py-3.5 border-2 border-white/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-orange-500/50 focus:border-orange-400 shadow-xl hover:border-white/50 transition-all backdrop-blur-xl bg-white/95 font-medium"
                                         disabled={sending}
                                     />
                                     <button
                                         onClick={handleSendWink}
-                                        className="h-12 w-12 text-2xl rounded-full bg-white border border-yellow-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center animate-[wiggle_0.6s_ease-in-out_infinite]"
+                                        className="h-14 w-14 text-3xl rounded-2xl bg-white/95 border-2 border-yellow-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center backdrop-blur-xl hover:border-yellow-400"
                                         disabled={sending || hasWinked}
                                         title="Send Wink"
                                     >
@@ -751,9 +754,9 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                     <button
                                         onClick={handleSendMessage}
                                         disabled={!messageText.trim() || sending}
-                                        className="p-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white rounded-full transition-all shadow-lg hover:shadow-xl disabled:shadow-none flex-shrink-0 hover:scale-105 active:scale-95"
+                                        className="p-4 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 hover:from-orange-600 hover:via-orange-700 hover:to-orange-800 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed text-white rounded-2xl transition-all shadow-2xl hover:shadow-orange-500/50 disabled:shadow-none flex-shrink-0 hover:scale-110 active:scale-95 border-2 border-white/20"
                                     >
-                                    <Send size={20} />
+                                    <Send size={22} strokeWidth={2.5} />
                                 </button>
                             </div>
                             </div>
@@ -761,13 +764,13 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
 
                         {/* Block Confirmation Modal */}
                         {showBlockConfirm && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                                <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
-                                    <h3 className="text-lg font-bold text-slate-900 mb-2">Block User?</h3>
-                                    <p className="text-sm text-slate-600 mb-4">
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                                <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-2 border-slate-200">
+                                    <h3 className="text-xl font-extrabold text-slate-900 mb-3">Block User?</h3>
+                                    <p className="text-sm text-slate-600 mb-6 leading-relaxed">
                                         You won't see this profile anymore and they won't be able to contact you.
                                     </p>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-3">
                                         <Button variant="ghost" className="flex-1" onClick={() => setShowBlockConfirm(false)}>
                                             Cancel
                                         </Button>
