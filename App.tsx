@@ -689,6 +689,7 @@ const PublicProfile = ({ username, onBack }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeSection, setActiveSection] = useState('about');
 
   useEffect(() => {
     if (!db || !username) return;
@@ -716,81 +717,298 @@ const PublicProfile = ({ username, onBack }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-slate-500 text-sm font-semibold">Loading profile...</div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 w-16 h-16 border-4 border-orange-300 border-b-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+        </div>
+        <div className="text-slate-600 text-base font-bold mt-6 animate-pulse">Loading profile...</div>
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
-        <p className="text-slate-600 font-semibold mb-4">{error || 'Profile not available.'}</p>
-        <Button variant="secondary" onClick={onBack}>Back</Button>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 p-6 text-center">
+        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-200 p-8 max-w-md">
+          <div className="bg-red-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="text-red-500" size={40} />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Profile Not Found</h2>
+          <p className="text-slate-600 font-medium mb-6">{error || 'This profile is not available.'}</p>
+          <Button variant="secondary" onClick={onBack} className="w-full">Go Back</Button>
+        </div>
       </div>
     );
   }
 
   const isTradie = profile.role === 'tradie';
+  const isAdmin = profile.email === ADMIN_EMAIL;
+  const photoUrl = profile.primaryPhoto || profile.photo || `https://placehold.co/600x600/${isTradie ? '1e293b' : '64748b'}/ffffff?text=${(profile.name || 'U').charAt(0)}`;
 
   return (
-    <div className="min-h-screen max-h-screen bg-gradient-to-b from-white via-slate-50 to-white text-slate-900 px-4 pt-4 overflow-hidden flex flex-col" style={{ overscrollBehavior: 'contain' }}>
-      <div className="bg-white text-slate-900 rounded-3xl shadow-xl border border-slate-200 overflow-hidden pb-12 pt-8 flex flex-col flex-1">
-        <div className="relative px-6 pt-6 pb-4">
-          <div className="absolute inset-x-4 top-2 h-20 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 opacity-10 blur-2xl rounded-3xl" />
-          <div className="relative flex gap-4 items-center">
-            <Avatar profile={profile} size="xl" className="w-20 h-20 shadow-lg border-4 border-white -mt-10 bg-white rounded-full" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-black text-slate-900">{profile.name || profile.username}</h1>
-                {profile.email === ADMIN_EMAIL ? (
-                  <span className="p-1.5 rounded-full bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 border border-white/60 shadow-lg shadow-purple-300/60">
-                    <Shield size={16} className="text-white fill-white drop-shadow" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 overflow-y-auto pb-20">
+      {/* Header with Back Button */}
+      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b-2 border-slate-200 shadow-lg">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+          <button 
+            onClick={onBack}
+            className="flex items-center gap-2 text-slate-700 hover:text-orange-600 transition-all duration-300 font-bold group"
+          >
+            <div className="p-2 rounded-xl bg-slate-100 group-hover:bg-orange-100 transition-all duration-300 group-hover:scale-110">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </div>
+            <span className="text-sm">Back</span>
+          </button>
+          <div className="text-sm font-bold text-slate-900">Public Profile</div>
+          <div className="w-20"></div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        {/* Cover Photo & Profile Header Card */}
+        <div className="bg-white rounded-3xl shadow-2xl border-2 border-slate-200 overflow-hidden">
+          {/* Cover Photo */}
+          <div className="relative h-48 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/30 via-transparent to-pink-500/30"></div>
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIxLTEuNzktNC00LTRzLTQgMS43OS00IDQgMS43OSA0IDQgNCA0LTEuNzkgNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
+            {isTradie && (
+              <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full px-4 py-2 border-2 border-white/40 shadow-xl">
+                <div className="flex items-center gap-2">
+                  <HardHat size={18} className="text-white" />
+                  <span className="text-white font-bold text-sm">Tradie</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Profile Info Section */}
+          <div className="relative px-6 pb-6">
+            {/* Avatar */}
+            <div className="relative -mt-16 mb-4">
+              <div className="w-32 h-32 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-slate-100 ring-4 ring-orange-200">
+                <img 
+                  src={photoUrl} 
+                  alt={profile.name} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.target.src = photoUrl; }}
+                />
+              </div>
+              {isAdmin && (
+                <div className="absolute bottom-0 right-0 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 rounded-full p-2 border-4 border-white shadow-xl animate-pulse">
+                  <Shield size={20} className="text-white fill-white" />
+                </div>
+              )}
+              {!isAdmin && profile.verified && (
+                <div className="absolute bottom-0 right-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-2 border-4 border-white shadow-xl">
+                  <ShieldCheck size={20} className="text-white" />
+                </div>
+              )}
+            </div>
+
+            {/* Name & Username */}
+            <div className="mb-4">
+              <div className="flex items-center gap-3 flex-wrap mb-2">
+                <h1 className="text-3xl font-extrabold text-slate-900">{profile.name || profile.username}</h1>
+                {isAdmin && (
+                  <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white text-xs font-bold shadow-lg">
+                    ADMIN
                   </span>
-                ) : (
-                  profile.verified && <ShieldCheck size={18} className="text-blue-500 fill-blue-100" />
+                )}
+                {!isAdmin && profile.verified && (
+                  <span className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold shadow-lg">
+                    VERIFIED
+                  </span>
                 )}
               </div>
               {profile.username && (
-                <p className="text-xs font-bold text-orange-600 mt-1">@{profile.username}</p>
+                <p className="text-base font-bold text-orange-600 mb-2">@{profile.username}</p>
               )}
-              <p className="text-sm text-slate-600 mt-1 capitalize">{profile.role || 'member'}{profile.location ? ' - ' + profile.location : ''}</p>
-              {isTradie && profile.rate && (
-                <p className="text-sm font-semibold text-slate-800 mt-1">GBP {profile.rate}/hr</p>
+              <div className="flex items-center gap-4 flex-wrap text-sm text-slate-600">
+                <div className="flex items-center gap-2">
+                  <User size={16} className="text-slate-400" />
+                  <span className="font-semibold capitalize">{profile.role || 'member'}</span>
+                </div>
+                {profile.location && (
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="font-medium">{profile.location}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Rate Display for Tradies */}
+            {isTradie && profile.rate && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Hourly Rate</p>
+                    <p className="text-3xl font-extrabold text-green-900">£{profile.rate}<span className="text-base text-green-600">/hr</span></p>
+                  </div>
+                  <div className="bg-green-500 rounded-full p-3 shadow-lg">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <Button variant="secondary" className="w-full py-4 text-base font-bold shadow-xl hover:shadow-2xl">
+                <MessageCircle size={20} className="mr-2" /> Message
+              </Button>
+              {isTradie ? (
+                <Button variant="primary" className="w-full py-4 text-base font-bold shadow-xl hover:shadow-2xl">
+                  <HardHat size={20} className="mr-2" /> Hire
+                </Button>
+              ) : (
+                <Button variant="outline" className="w-full py-4 text-base font-bold">
+                  <Star size={20} className="mr-2" /> Favorite
+                </Button>
               )}
             </div>
           </div>
         </div>
 
-        {profile.bio && (
-          <div className="px-6 pt-2 pb-5">
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 shadow-inner">
-              <h4 className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-2">About</h4>
-              <p className="text-sm text-slate-700 leading-relaxed">{profile.bio}</p>
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-2">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveSection('about')}
+              className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
+                activeSection === 'about'
+                  ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-lg scale-105'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              About
+            </button>
+            <button
+              onClick={() => setActiveSection('gallery')}
+              className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
+                activeSection === 'gallery'
+                  ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-lg scale-105'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              Gallery
+            </button>
+            {isTradie && (
+              <button
+                onClick={() => setActiveSection('reviews')}
+                className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
+                  activeSection === 'reviews'
+                    ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white shadow-lg scale-105'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                Reviews
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Content Sections */}
+        {activeSection === 'about' && (
+          <div className="space-y-4 animate-fade-in">
+            {/* Bio */}
+            {profile.bio ? (
+              <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="bg-orange-100 p-2 rounded-lg">
+                    <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-extrabold text-slate-900">About Me</h3>
+                </div>
+                <p className="text-base text-slate-700 leading-relaxed">{profile.bio}</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-8 text-center">
+                <div className="bg-slate-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="text-slate-400" size={32} />
+                </div>
+                <p className="text-slate-500 font-medium">No bio available yet</p>
+              </div>
+            )}
+
+            {/* Skills/Services for Tradies */}
+            {isTradie && (
+              <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <HardHat size={20} className="text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-extrabold text-slate-900">Services & Skills</h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {profile.trades && profile.trades.length > 0 ? (
+                    profile.trades.map((trade, idx) => (
+                      <span key={idx} className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-sm font-bold shadow-lg">
+                        {trade}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="px-4 py-2 bg-slate-100 text-slate-600 rounded-full text-sm font-bold">
+                      General Services
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl shadow-lg border-2 border-orange-200 p-4 text-center">
+                <div className="text-3xl font-extrabold text-orange-600 mb-1">
+                  {profile.jobsCompleted || 0}
+                </div>
+                <div className="text-xs font-bold text-orange-800 uppercase tracking-wide">Jobs Done</div>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg border-2 border-green-200 p-4 text-center">
+                <div className="text-3xl font-extrabold text-green-600 mb-1">
+                  {profile.rating ? profile.rating.toFixed(1) : '5.0'}
+                </div>
+                <div className="text-xs font-bold text-green-800 uppercase tracking-wide">Rating</div>
+              </div>
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-lg border-2 border-blue-200 p-4 text-center">
+                <div className="text-3xl font-extrabold text-blue-600 mb-1">
+                  {profile.reviewCount || 0}
+                </div>
+                <div className="text-xs font-bold text-blue-800 uppercase tracking-wide">Reviews</div>
+              </div>
             </div>
           </div>
         )}
 
-        <div className="px-6 pt-6 pb-6 mt-auto">
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="secondary" className="w-full flex items-center justify-center gap-2 shadow-md">
-              <MessageCircle size={16} /> Send Message
-            </Button>
-            <Button variant="ghost" className="w-full flex items-center justify-center gap-2 border border-slate-200 shadow-sm">
-              <ImageIcon size={16} /> Gallery
-            </Button>
-            {isTradie && (
-              <>
-                <Button variant="ghost" className="w-full flex items-center justify-center gap-2 border border-slate-200 shadow-sm">
-                  <Star size={16} /> Reviews
-                </Button>
-                <Button variant="secondary" className="w-full flex items-center justify-center gap-2 shadow-md">
-                  <HardHat size={16} /> Hire Me
-                </Button>
-              </>
-            )}
+        {activeSection === 'gallery' && (
+          <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-8 text-center animate-fade-in">
+            <div className="bg-slate-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+              <ImageIcon className="text-slate-400" size={40} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Gallery Coming Soon</h3>
+            <p className="text-slate-600">Photo gallery will be available here</p>
           </div>
-        </div>
+        )}
+
+        {activeSection === 'reviews' && isTradie && (
+          <div className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-8 text-center animate-fade-in">
+            <div className="bg-yellow-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+              <Star className="text-yellow-500 fill-yellow-500" size={40} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Reviews Coming Soon</h3>
+            <p className="text-slate-600">Customer reviews will be displayed here</p>
+          </div>
+        )}
       </div>
     </div>
   );
