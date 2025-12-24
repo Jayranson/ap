@@ -309,7 +309,7 @@ const isEmailVerifiedForProfile = (user, profile) => {
 };
 
 const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
-  const [jobData, setJobData] = useState({ title: '', description: '', budget: '' });
+  const [jobData, setJobData] = useState({ title: '', description: '', budget: '', urgency: 'standard' });
 
   const submitJob = async () => {
     if(!jobData.title) return;
@@ -349,25 +349,154 @@ const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
   };
 
   return (
-    <div className="px-4 py-6 pb-24 bg-slate-50">
-      <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-5 space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 mb-1">Hire {tradie.name || tradie.username}</h2>
-            <p className="text-slate-500 text-sm">Send a direct request for work.</p>
+    <div className="px-4 py-6 pb-24 bg-gradient-to-b from-orange-50 via-white to-slate-50">
+      <div className="max-w-lg mx-auto">
+        {/* Header Card */}
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl shadow-2xl p-6 mb-6 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIxIDEuNzktNCA0LTRINDB2LTRoLTRjLTIuMjEgMC00IDEuNzktNCA0djRoNHYtNHoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-20"></div>
+          <div className="relative flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Briefcase className="text-white" size={28} strokeWidth={2.5} />
+                <h1 className="text-2xl font-black text-white">Request a Job</h1>
+              </div>
+              <p className="text-orange-100 text-sm font-medium">Hiring {tradie.name || tradie.username}</p>
+            </div>
+            <Button variant="ghost" onClick={onCancel} className="text-white hover:bg-white/20 px-3 py-2 rounded-xl">
+              <X size={20} strokeWidth={2.5} />
+            </Button>
           </div>
-          <Button variant="ghost" onClick={onCancel} className="text-slate-600 hover:text-orange-600 px-3 py-1.5">
-            <ArrowRight className="rotate-180" size={16} />
-          </Button>
         </div>
 
-        <Input label="Job Title" placeholder="e.g. Fix leaky tap" value={jobData.title} onChange={e => setJobData({...jobData, title: e.target.value})} />
-        <Input label="Description" textarea rows={4} placeholder="Describe the work needed..." value={jobData.description} onChange={e => setJobData({...jobData, description: e.target.value})} />
-        <Input label="Estimated Budget" placeholder="e.g. £100" value={jobData.budget} onChange={e => setJobData({...jobData, budget: e.target.value})} />
+        {/* Info Alert */}
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-6 flex gap-3">
+          <AlertCircle className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+          <div className="text-sm">
+            <p className="font-semibold text-blue-900 mb-1">How it works</p>
+            <p className="text-blue-700">Your request will be sent directly to {tradie.name || 'the tradie'}. They'll review and respond within 24-48 hours.</p>
+          </div>
+        </div>
 
-        <div className="flex gap-3 pt-2">
-          <Button variant="ghost" className="flex-1" onClick={onCancel}>Cancel</Button>
-          <Button onClick={submitJob} variant="secondary" className="flex-1">Send Request</Button>
+        {/* Main Form Card */}
+        <div className="bg-white rounded-3xl shadow-xl border-2 border-slate-200 p-6 space-y-6">
+          
+          {/* Job Title */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <ClipboardList className="text-orange-600" size={20} />
+              <label className="block text-sm font-bold text-slate-900">Job Title *</label>
+            </div>
+            <Input 
+              placeholder="e.g. Fix leaky kitchen tap" 
+              value={jobData.title} 
+              onChange={e => setJobData({...jobData, title: e.target.value})}
+              className="text-base"
+            />
+            <p className="text-xs text-slate-500 mt-1.5 ml-1">Be specific and clear about the work needed</p>
+          </div>
+
+          {/* Description */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Edit2 className="text-orange-600" size={20} />
+              <label className="block text-sm font-bold text-slate-900">Job Description</label>
+            </div>
+            <Input 
+              textarea 
+              rows={5} 
+              placeholder="Describe the work in detail...&#10;&#10;Example: Kitchen tap is dripping constantly. Need a plumber to replace the washer or the entire tap if necessary. Access is easy, tap is standard size."
+              value={jobData.description} 
+              onChange={e => setJobData({...jobData, description: e.target.value})}
+              className="text-base"
+            />
+            <div className="flex items-center justify-between mt-1.5 ml-1">
+              <p className="text-xs text-slate-500">Include details about location, access, and materials</p>
+              <p className="text-xs text-slate-400">{jobData.description.length} chars</p>
+            </div>
+          </div>
+
+          {/* Budget */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="text-orange-600" size={20} />
+              <label className="block text-sm font-bold text-slate-900">Estimated Budget</label>
+            </div>
+            <Input 
+              placeholder="e.g. £150 or £100-£200" 
+              value={jobData.budget} 
+              onChange={e => setJobData({...jobData, budget: e.target.value})}
+              className="text-base"
+            />
+            <p className="text-xs text-slate-500 mt-1.5 ml-1">Provide a range if unsure. The tradie will give you a quote.</p>
+          </div>
+
+          {/* Urgency */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="text-orange-600" size={20} />
+              <label className="block text-sm font-bold text-slate-900">Urgency</label>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: 'urgent', label: 'Urgent', icon: AlertCircle, desc: 'ASAP' },
+                { value: 'standard', label: 'Standard', icon: Calendar, desc: '1-2 weeks' },
+                { value: 'flexible', label: 'Flexible', icon: Clock, desc: 'No rush' }
+              ].map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => setJobData({...jobData, urgency: option.value})}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    jobData.urgency === option.value 
+                      ? 'border-orange-500 bg-orange-50 shadow-md' 
+                      : 'border-slate-200 bg-white hover:border-orange-300'
+                  }`}
+                >
+                  <option.icon 
+                    size={20} 
+                    className={`mx-auto mb-1 ${jobData.urgency === option.value ? 'text-orange-600' : 'text-slate-400'}`}
+                  />
+                  <p className={`text-xs font-semibold ${jobData.urgency === option.value ? 'text-orange-900' : 'text-slate-700'}`}>
+                    {option.label}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">{option.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tips Card */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-4">
+            <div className="flex items-start gap-2 mb-2">
+              <ShieldCheck className="text-green-600 flex-shrink-0 mt-0.5" size={18} />
+              <p className="text-sm font-semibold text-green-900">Tips for a great request</p>
+            </div>
+            <ul className="text-xs text-green-800 space-y-1 ml-6">
+              <li className="list-disc">Include photos if you have them (you can send via chat)</li>
+              <li className="list-disc">Mention any access restrictions or parking</li>
+              <li className="list-disc">Be realistic with budget estimates</li>
+              <li className="list-disc">Specify your preferred timeframe</li>
+            </ul>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
+            <Button 
+              variant="ghost" 
+              className="flex-1 py-3 text-base font-semibold border-2 border-slate-200 hover:border-slate-300 rounded-xl" 
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={submitJob} 
+              variant="secondary" 
+              className="flex-1 py-3 text-base font-bold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl rounded-xl transition-all"
+              disabled={!jobData.title.trim()}
+            >
+              <Send size={18} className="mr-2" />
+              Send Request
+            </Button>
+          </div>
         </div>
       </div>
     </div>
