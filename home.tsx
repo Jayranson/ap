@@ -73,6 +73,7 @@ const ProfileTile = ({ profile, distanceKm, onOpenProfile, isCurrentUser, should
     const isPending = profilePictureRequests && profilePictureRequests.some(req => 
         req.userId === profile?.uid && req.status === 'pending'
     );
+    const isPendingForSelf = isCurrentUser && isPending;
 
     // Better distance display logic with privacy
     let distanceDisplay: string | null = null;
@@ -93,7 +94,7 @@ const ProfileTile = ({ profile, distanceKm, onOpenProfile, isCurrentUser, should
         }
     }
 
-    // Only blur if not viewing own profile or if pending
+    // Blur if the user enabled blur (for others) or if the photo is pending review
     const shouldApplyBlur = (shouldBlur && !isCurrentUser) || isPending;
 
     // Check if profile is admin - only check profile's email to show admin badge to all users
@@ -114,9 +115,9 @@ const ProfileTile = ({ profile, distanceKm, onOpenProfile, isCurrentUser, should
     return (
         <button
             onClick={() => onOpenProfile(profile)}
-            className={`w-full aspect-square relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 group transform hover:-translate-y-1 active:scale-95 ${
+            className={`w-full aspect-square relative overflow-hidden rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 border-4 group transform hover:-translate-y-2 hover:scale-[1.02] active:scale-95 backdrop-blur-sm ${
                 getBorderClasses()
-            } ${isCurrentUser ? 'ring-2 ring-orange-500 ring-offset-2 ring-offset-orange-100' : ''}`}
+            } ${isCurrentUser ? 'ring-4 ring-orange-500 ring-offset-4 ring-offset-orange-50' : ''}`}
         >
             <LazyImage
                 src={photoUrl}
@@ -126,11 +127,9 @@ const ProfileTile = ({ profile, distanceKm, onOpenProfile, isCurrentUser, should
             />
             
             {/* Pending Review Indicator */}
-            {isPending && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-orange-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg">
-                        PENDING REVIEW
-                    </div>
+            {isPendingForSelf && (
+                <div className="absolute top-3 right-3 bg-orange-500 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
+                    <Lock size={12} /> Pending review
                 </div>
             )}
             
@@ -145,15 +144,15 @@ const ProfileTile = ({ profile, distanceKm, onOpenProfile, isCurrentUser, should
             
             {/* Unread Messages Count - Top Right (Smaller size with animation) */}
             {unreadCount > 0 && !isCurrentUser && (
-                <div className="absolute top-1.5 right-1.5 z-10 w-5 h-5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-lg border-2 border-white animate-bounce">
+                <div className="absolute top-2 right-2 z-10 w-6 h-6 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 rounded-full flex items-center justify-center text-white text-[10px] font-extrabold shadow-xl border-2 border-white animate-bounce ring-2 ring-orange-300">
                     {unreadCount > 9 ? '9+' : unreadCount}
                 </div>
             )}
             
             {/* Admin Badge - Top Left with Shield (Higher priority than busy badge) */}
             {isAdmin && (
-                <div className="absolute top-1.5 left-1.5 z-20 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 text-white p-1.5 rounded-full shadow-xl border-2 border-white flex items-center justify-center animate-pulse-slow" title="Platform Admin">
-                    <Shield size={12} className="fill-white" />
+                <div className="absolute top-2 left-2 z-20 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-800 text-white p-2 rounded-full shadow-2xl border-2 border-white flex items-center justify-center animate-pulse ring-2 ring-purple-300" title="Platform Admin">
+                    <Shield size={14} className="fill-white" />
                 </div>
             )}
             
@@ -171,21 +170,21 @@ const ProfileTile = ({ profile, distanceKm, onOpenProfile, isCurrentUser, should
             })()}
 
             {/* Overlay for distance and name */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-2 group-hover:from-black/95 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent flex flex-col justify-end p-3 group-hover:from-black/100 transition-all duration-500">
                 <div className='flex items-end justify-between w-full transform group-hover:translate-y-0 transition-transform duration-300'>
-                    <span className="text-white text-[11px] font-bold truncate text-left w-2/3 shadow-black drop-shadow-lg group-hover:drop-shadow-2xl transition-all duration-300">
+                    <span className="text-white text-xs font-bold truncate text-left w-2/3 drop-shadow-2xl group-hover:text-orange-200 transition-colors duration-300">
                         {profile.name || profile.username}
                         {isCurrentUser && <span className='font-normal opacity-75 ml-1'>(You)</span>}
                     </span>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                     {/* Verified Tradie Badge - Inside distance field */}
                     {isTradie && isVerified && (
-                        <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-500 rounded-full p-0.5 shadow-md border border-white flex items-center justify-center" title="Verified Tradie">
-                            <HardHat className="w-2.5 h-2.5 text-white" />
+                        <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 rounded-full p-1 shadow-lg border-2 border-white flex items-center justify-center ring-1 ring-orange-300" title="Verified Tradie">
+                            <HardHat className="w-3 h-3 text-white" />
                             </div>
                         )}
                         {distanceDisplay && (
-                            <span className={`text-[9px] font-bold text-white px-1 py-0.5 rounded-full shadow-md transition-all duration-300 max-w-[72px] text-center truncate ${isCurrentUser ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'} group-hover:shadow-lg group-hover:scale-105`}>
+                            <span className={`text-[9px] font-extrabold text-white px-2 py-1 rounded-full shadow-lg transition-all duration-300 max-w-[72px] text-center truncate ${isCurrentUser ? 'bg-gradient-to-r from-green-600 via-green-700 to-green-800' : 'bg-gradient-to-r from-orange-600 via-orange-700 to-orange-800'} group-hover:shadow-2xl group-hover:scale-110 border border-white/30`}>
                                 {distanceDisplay}
                             </span>
                         )}
@@ -606,12 +605,12 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
         locationDisplay = `${distanceKm.toFixed(1)} km away`;
     }
 
-    // Only blur photos if not viewing own profile or if pending
-    const shouldBlurPhoto = (profile.blurPhotos && auth?.currentUser?.uid !== profile.uid) || isPending;
+    // Blur everywhere if the user enabled it, or while pending review
+    const shouldBlurPhoto = profile.blurPhotos || isPending;
 
     return (
         <div 
-            className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center animate-fade-in p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center animate-fade-in p-4"
             onClick={(e) => {
                 // Close if clicking the backdrop
                 if (e.target === e.currentTarget) {
@@ -619,7 +618,7 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                 }
             }}
         >
-            <div className="bg-white w-full max-w-sm h-[60vh] rounded-2xl overflow-hidden shadow-2xl relative flex flex-col animate-scale-in">
+            <div className="bg-white w-full max-w-sm h-[70vh] rounded-3xl overflow-hidden shadow-2xl border-2 border-slate-200 relative flex flex-col animate-scale-in">
                 
                 {!chatMode ? (
                     // PROFILE VIEW - Full screen image with overlays
@@ -636,31 +635,31 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                         </div>
 
                         {/* Close Button */}
-                        <button onClick={onClose} className="absolute top-4 right-4 z-20 bg-white/20 hover:bg-white/30 text-white p-2.5 rounded-xl backdrop-blur-md transition-all duration-300 shadow-lg hover:shadow-xl active:scale-90">
-                            <X className="w-5 h-5" />
+                        <button onClick={onClose} className="absolute top-4 right-4 z-20 bg-white/25 hover:bg-white/35 text-white p-3 rounded-2xl backdrop-blur-lg transition-all duration-300 shadow-xl hover:shadow-2xl active:scale-90 border border-white/30">
+                            <X className="w-6 h-6" strokeWidth={2.5} />
                         </button>
 
                         {/* Block Button */}
                         <button
                             onClick={() => setShowBlockConfirm(true)}
-                            className="absolute top-4 left-4 z-20 bg-white/20 hover:bg-white/30 text-white p-2.5 rounded-xl backdrop-blur-md transition-all duration-300 shadow-lg hover:shadow-xl active:scale-90"
+                            className="absolute top-4 left-4 z-20 bg-white/25 hover:bg-white/35 text-white p-3 rounded-2xl backdrop-blur-lg transition-all duration-300 shadow-xl hover:shadow-2xl active:scale-90 border border-white/30"
                             title="Block user"
                         >
-                            <Ban className="w-5 h-5" />
+                            <Ban className="w-6 h-6" strokeWidth={2.5} />
                         </button>
 
                         {/* Pending/Lock Overlays */}
                         {isPending && (
-                            <div className="absolute inset-0 flex items-center justify-center z-10">
-                                <div className="bg-orange-500 text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg">
+                            <div className="absolute inset-0 flex items-center justify-center z-10 backdrop-blur-sm">
+                                <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white text-sm font-extrabold px-6 py-3 rounded-2xl shadow-2xl border-2 border-white/30 animate-pulse">
                                     PENDING REVIEW
                                 </div>
                             </div>
                         )}
                         {shouldBlurPhoto && !isPending && (
-                            <div className="absolute inset-0 flex items-center justify-center z-10">
-                                <div className="bg-black/50 p-3 rounded-full text-white backdrop-blur-sm">
-                                    <Lock size={32} />
+                            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
+                                <div className="bg-black/65 text-white px-3 py-2 rounded-full shadow-2xl border border-white/20">
+                                    <Lock size={18} />
                                 </div>
                             </div>
                         )}
@@ -668,19 +667,19 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                         {/* Content Overlay - Scrollable */}
                         <div className="absolute inset-0 flex flex-col z-10">
                             {/* Top Section - Name and Location */}
-                            <div className="p-6 pt-16">
-                                <h3 className="text-4xl font-extrabold text-white leading-tight mb-2 drop-shadow-lg flex items-center gap-2">
+                            <div className="p-6 pt-20">
+                                <h3 className="text-4xl font-extrabold text-white leading-tight mb-3 drop-shadow-2xl flex items-center gap-2">
                                     <span>{profile.name || profile.username}{profile.hideAge ? '' : `, ${profile.age}`}</span>
                                     {profile.email === ADMIN_EMAIL ? (
-                                        <span className="p-1.5 rounded-full bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 border border-white/30 shadow-lg shadow-purple-300/60">
-                                            <Shield size={16} className="text-white fill-white drop-shadow" />
+                                        <span className="p-2 rounded-full bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 border-2 border-white/50 shadow-2xl animate-pulse">
+                                            <Shield size={18} className="text-white fill-white drop-shadow-lg" />
                                         </span>
                                     ) : (
-                                        profile.verified && <ShieldCheck size={22} className="text-blue-400 fill-white drop-shadow" />
+                                        profile.verified && <ShieldCheck size={24} className="text-blue-400 fill-white drop-shadow-2xl" />
                                     )}
                                 </h3>
                                 {profile.username && (
-                                    <p className="text-xs font-bold text-orange-100 drop-shadow-lg -mt-1">
+                                    <p className="text-sm font-bold text-orange-100 drop-shadow-xl mb-2">
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -691,14 +690,14 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                                     window.dispatchEvent(new CustomEvent('open-public-profile', { detail: { username: profile.username } }));
                                                 }
                                             }}
-                                            className="px-2 py-0.5 bg-white/15 rounded-full border border-white/20 backdrop-blur-sm shadow-sm hover:bg-white/25 transition"
+                                            className="px-3 py-1.5 bg-white/20 rounded-full border-2 border-white/30 backdrop-blur-md shadow-lg hover:bg-white/30 transition-all duration-300 hover:scale-105"
                                         >
                                             @{profile.username}
                                         </button>
                                     </p>
                                 )}
-                                <p className="text-base text-white/90 flex items-center font-medium drop-shadow-md">
-                                    <MapPin className="w-4 h-4 mr-1 text-orange-400" />
+                                <p className="text-base text-white/95 flex items-center font-semibold drop-shadow-lg">
+                                    <MapPin className="w-5 h-5 mr-2 text-orange-400 drop-shadow" strokeWidth={2.5} />
                                     {locationDisplay}
                                 </p>
                             </div>
@@ -708,12 +707,12 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                 {/* Badges */}
                                 <div className="flex flex-wrap gap-2 mb-4">
                                     {profile.sexuality && (
-                                        <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-bold border border-white/30">
+                                        <span className="bg-white/25 backdrop-blur-md text-white px-4 py-2 rounded-2xl text-xs font-extrabold border-2 border-white/40 shadow-xl">
                                             {profile.sexuality}
                                         </span>
                                     )}
                                     {profile.lookingFor && (
-                                        <span className="bg-green-500/80 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-bold border border-white/30">
+                                        <span className="bg-gradient-to-r from-green-500 to-green-600 backdrop-blur-md text-white px-4 py-2 rounded-2xl text-xs font-extrabold border-2 border-white/40 shadow-xl">
                                             Looking for: {profile.lookingFor}
                                         </span>
                                     )}
@@ -721,28 +720,31 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
 
                                 {/* Bio */}
                                 {profile.bio && (
-                                    <div className="bg-black/30 backdrop-blur-md p-4 rounded-xl mb-4">
-                                        <h4 className="text-[11px] font-bold text-white/80 uppercase tracking-wider mb-2">Bio</h4>
+                                    <div className="bg-black/40 backdrop-blur-xl p-5 rounded-2xl mb-4 border-2 border-white/20 shadow-2xl">
+                                        <h4 className="text-xs font-extrabold text-white/90 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <User size={14} className="text-orange-400" />
+                                            About
+                                        </h4>
                                         <p className="text-white text-sm leading-relaxed">{profile.bio}</p>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Message Input - Same as chat view */}
-                            <div className="p-4 border-t-2 border-slate-200 bg-gradient-to-t from-slate-50 to-white">
-                                <div className="flex gap-2 items-center">
+                            {/* Message Input - Enhanced */}
+                            <div className="p-5 border-t-2 border-white/20 bg-gradient-to-t from-black/50 via-black/30 to-transparent backdrop-blur-xl">
+                                <div className="flex gap-3 items-center">
                                     <input
                                         type="text"
                                         value={messageText}
                                         onChange={(e) => setMessageText(e.target.value)}
                                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                                         placeholder="Type a message..."
-                                        className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 shadow-md hover:border-slate-300 transition-all"
+                                        className="flex-1 px-5 py-3.5 border-2 border-white/30 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-orange-500/50 focus:border-orange-400 shadow-xl hover:border-white/50 transition-all backdrop-blur-xl bg-white/95 font-medium"
                                         disabled={sending}
                                     />
                                     <button
                                         onClick={handleSendWink}
-                                        className="h-12 w-12 text-2xl rounded-full bg-white border border-yellow-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center animate-[wiggle_0.6s_ease-in-out_infinite]"
+                                        className="h-14 w-14 text-3xl rounded-2xl bg-white/95 border-2 border-yellow-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center backdrop-blur-xl hover:border-yellow-400"
                                         disabled={sending || hasWinked}
                                         title="Send Wink"
                                     >
@@ -751,9 +753,9 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                     <button
                                         onClick={handleSendMessage}
                                         disabled={!messageText.trim() || sending}
-                                        className="p-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white rounded-full transition-all shadow-lg hover:shadow-xl disabled:shadow-none flex-shrink-0 hover:scale-105 active:scale-95"
+                                        className="p-4 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 hover:from-orange-600 hover:via-orange-700 hover:to-orange-800 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed text-white rounded-2xl transition-all shadow-2xl hover:shadow-orange-500/50 disabled:shadow-none flex-shrink-0 hover:scale-110 active:scale-95 border-2 border-white/20"
                                     >
-                                    <Send size={20} />
+                                    <Send size={22} strokeWidth={2.5} />
                                 </button>
                             </div>
                             </div>
@@ -761,13 +763,13 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
 
                         {/* Block Confirmation Modal */}
                         {showBlockConfirm && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                                <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
-                                    <h3 className="text-lg font-bold text-slate-900 mb-2">Block User?</h3>
-                                    <p className="text-sm text-slate-600 mb-4">
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                                <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-2 border-slate-200">
+                                    <h3 className="text-xl font-extrabold text-slate-900 mb-3">Block User?</h3>
+                                    <p className="text-sm text-slate-600 mb-6 leading-relaxed">
                                         You won't see this profile anymore and they won't be able to contact you.
                                     </p>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-3">
                                         <Button variant="ghost" className="flex-1" onClick={() => setShowBlockConfirm(false)}>
                                             Cancel
                                         </Button>
@@ -791,11 +793,20 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                             >
                                 <div className="flex-shrink-0">
                                     {photoUrl ? (
-                                        <img 
-                                            src={photoUrl} 
-                                            alt={profile.name || profile.username} 
-                                            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md"
-                                        />
+                                        <div className="relative">
+                                            <img 
+                                                src={photoUrl} 
+                                                alt={profile.name || profile.username} 
+                                                className={`w-10 h-10 rounded-full object-cover border-2 ${shouldBlurPhoto ? 'border-orange-500 blur-md scale-105' : 'border-white'} shadow-md`}
+                                            />
+                                            {shouldBlurPhoto && (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <div className="w-10 h-10 rounded-full border-2 border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
+                                                        <Shield size={16} className="text-orange-600" strokeWidth={2.5} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     ) : (
                                         <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md">
                                             <User size={20} className="text-white"/>
@@ -909,11 +920,14 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
             )}
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-50 to-white">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-50">
                             {messages.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                                    <MessageCircle className="w-16 h-16 text-slate-300 mb-4" />
-                                    <p className="text-slate-500 text-sm">Start your conversation!</p>
+                                <div className="flex flex-col items-center justify-center h-full text-center py-16">
+                                    <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-full p-6 mb-5 shadow-xl">
+                                        <MessageCircle className="w-20 h-20 text-slate-400" strokeWidth={2} />
+                                    </div>
+                                    <p className="text-slate-600 text-base font-semibold">Start your conversation!</p>
+                                    <p className="text-slate-400 text-sm mt-2">Send a message to connect</p>
                                 </div>
                             ) : (
                                 messages.map((msg) => {
@@ -944,49 +958,58 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                     return (
                                         <div
                                             key={msg.id}
-                                            className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'} ${msg._animate ? 'animate-popIn' : ''}`}
+                                            className={`flex items-end gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'} ${msg._animate ? 'animate-popIn' : ''}`}
                                             onDoubleClick={handleLike}
                                             onTouchEnd={handleTap}
                                         >
                                             {!isMe && (
                                                 <div className="flex-shrink-0">
                                                     {msg.senderPhoto || profile.primaryPhoto || profile.photo ? (
-                                                        <img 
-                                                            src={msg.senderPhoto || profile.primaryPhoto || profile.photo} 
-                                                            alt={msg.senderName || profile.name || profile.username} 
-                                                            className="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-sm"
-                                                        />
+                                                        <div className="relative">
+                                                            <img 
+                                                                src={msg.senderPhoto || profile.primaryPhoto || profile.photo} 
+                                                                alt={msg.senderName || profile.name || profile.username} 
+                                                                className={`w-10 h-10 rounded-full object-cover border-2 shadow-lg ${shouldBlurPhoto ? 'border-orange-500 ring-2 ring-orange-300 blur-md scale-105' : 'border-white ring-2 ring-slate-200'}`}
+                                                            />
+                                                            {shouldBlurPhoto && (
+                                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                                    <div className="w-10 h-10 rounded-full border-2 border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
+                                                                        <Shield size={16} className="text-orange-600" strokeWidth={2.5} />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     ) : (
-                                                        <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border border-slate-200 shadow-sm">
-                                                            <User size={14} className="text-white"/>
+                                                        <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 rounded-full border-2 border-white shadow-lg ring-2 ring-slate-200">
+                                                            <User size={16} className="text-white" strokeWidth={2.5} />
                                                         </div>
                                                     )}
                                                 </div>
                                             )}
-                            <div className={`max-w-[70%] ${isMe ? '' : ''}`}>
-                                <div className="space-y-1">
-                                <div className={`px-4 py-2 rounded-2xl shadow-md ${
+                            <div className={`max-w-[75%] ${isMe ? '' : ''}`}>
+                                <div className="space-y-2">
+                                <div className={`px-5 py-3 rounded-2xl shadow-lg ${
                                     isMe 
-                                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' 
-                                        : 'bg-white text-slate-800 border border-slate-200'
+                                        ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white border-2 border-white/20' 
+                                        : 'bg-white text-slate-800 border-2 border-slate-200'
                                 }`}>
                                     {msg.imageUrl ? (
                                         <div onClick={() => window.open(msg.imageUrl, '_blank')} className="cursor-zoom-in">
-                                            <LazyImage src={msg.thumbUrl || msg.imageUrl} alt="Sent image" className="max-h-60 rounded-xl" />
+                                            <LazyImage src={msg.thumbUrl || msg.imageUrl} alt="Sent image" className="max-h-64 rounded-xl shadow-md" />
                                         </div>
                                     ) : (
-                                        <p className="text-sm break-words leading-relaxed">{msg.text}</p>
+                                        <p className="text-sm break-words leading-relaxed font-medium">{msg.text}</p>
                                     )}
                                 </div>
                                     {likes.length > 0 && (
-                                        <div className={`flex items-center gap-1 text-[11px] font-semibold mt-1 ${isMe ? 'justify-end text-white' : 'text-orange-600'}`}>
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-100 shadow-sm">
+                                        <div className={`flex items-center gap-1 text-xs font-bold mt-1 ${isMe ? 'justify-end' : ''}`}>
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-red-50 to-orange-50 text-orange-700 border-2 border-orange-200 shadow-md">
                                                 ❤️ {likes.length}
                                             </span>
                                         </div>
                                     )}
                                     {isMe && (
-                                        <div className="flex items-center justify-end gap-1 text-[10px] mt-1 text-slate-500">
+                                        <div className="flex items-center justify-end gap-1.5 text-[10px] mt-1 text-slate-500 font-semibold">
                                             {(() => {
                                                 const createdMs = msg.createdAt?.toMillis?.() || 0;
                                                 const deliveredMs = otherReceipts?.lastDeliveredAt?.toMillis?.();
@@ -998,7 +1021,7 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                                         : 'Sent';
                                                 return (
                                                     <>
-                                                        <CheckCircle size={12} className="text-white" />
+                                                        <CheckCircle size={12} className="text-slate-400" strokeWidth={2.5} />
                                                         <span>{status}</span>
                                                     </>
                                                 );
@@ -1015,15 +1038,15 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                         </div>
 
                         {/* Input Area */}
-                        <div className="p-4 border-t-2 border-slate-200 bg-gradient-to-t from-slate-50 to-white">
-                            <div className="flex gap-2 items-center">
+                        <div className="p-5 border-t-2 border-slate-200 bg-gradient-to-t from-slate-50 via-white to-white shadow-lg">
+                            <div className="flex gap-3 items-center">
                                 <input
                                     type="text"
                                     value={messageText}
                                     onChange={(e) => setMessageText(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                                     placeholder="Type a message..."
-                                    className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 shadow-md hover:border-slate-300 transition-all"
+                                    className="flex-1 px-5 py-3.5 border-2 border-slate-300 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-orange-500/30 focus:border-orange-500 shadow-lg hover:border-slate-400 transition-all font-medium"
                                     disabled={sending}
                                 />
                                 <input
@@ -1035,31 +1058,31 @@ const SocialProfileModal = ({ profile, distanceKm, onClose, hideDistance = false
                                 />
                                 <button
                                     onClick={handleChooseImage}
-                                    className="p-3 bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 active:scale-95 transition-all shadow-sm disabled:opacity-50"
+                                    className="p-3.5 bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 rounded-2xl hover:from-slate-200 hover:to-slate-300 active:scale-95 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 border-2 border-slate-300"
                                     title="Send image"
                                     disabled={uploadingImage}
                                 >
-                                    <ImageIcon size={20} />
+                                    <ImageIcon size={22} strokeWidth={2.5} />
                                 </button>
                                 <button
                                     onClick={handleSendMessage}
                                     disabled={!messageText.trim() || sending}
-                                    className="p-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white rounded-full transition-all shadow-lg hover:shadow-xl disabled:shadow-none hover:scale-105 active:scale-95"
+                                    className="p-4 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 hover:from-orange-600 hover:via-orange-700 hover:to-orange-800 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed text-white rounded-2xl transition-all shadow-2xl hover:shadow-orange-500/50 disabled:shadow-none hover:scale-110 active:scale-95 border-2 border-white/20"
                                 >
-                                    <Send size={20} />
+                                    <Send size={22} strokeWidth={2.5} />
                                 </button>
                             </div>
                         </div>
 
                         {/* Block Confirmation Modal */}
                         {showBlockConfirm && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                                <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
-                                    <h3 className="text-lg font-bold text-slate-900 mb-2">Block User?</h3>
-                                    <p className="text-sm text-slate-600 mb-4">
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                                <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-2 border-slate-200">
+                                    <h3 className="text-xl font-extrabold text-slate-900 mb-3">Block User?</h3>
+                                    <p className="text-sm text-slate-600 mb-6 leading-relaxed">
                                         You won't see this profile anymore and they won't be able to contact you.
                                     </p>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-3">
                                         <Button variant="ghost" className="flex-1" onClick={() => setShowBlockConfirm(false)}>
                                             Cancel
                                         </Button>
@@ -1351,22 +1374,23 @@ const LandingPage = ({ onLogin }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col items-center p-6 relative overflow-y-auto">
       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #f97316 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+      <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/5 via-transparent to-purple-500/5 animate-pulse"></div>
       
       <div className="z-10 w-full max-w-md py-8">
         {/* Logo */}
         <div className="flex flex-col items-center mb-6 animate-fade-in">
-          <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-500 p-3 rounded-2xl mb-3 shadow-[0_0_40px_rgba(249,115,22,0.6)] animate-pulse-slow hover:scale-110 transition-transform duration-300">
-            <HardHat size={40} className="text-white fill-white animate-bounce-subtle" />
+          <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 p-4 rounded-3xl mb-4 shadow-[0_0_60px_rgba(249,115,22,0.8)] animate-pulse-slow hover:scale-110 transition-transform duration-500 ring-4 ring-orange-400/30">
+            <HardHat size={48} className="text-white fill-white animate-bounce-subtle" />
           </div>
-          <h1 className="text-4xl font-extrabold mb-2 tracking-tight">
+          <h1 className="text-5xl font-extrabold mb-3 tracking-tight drop-shadow-2xl">
             <span className="bg-gradient-to-r from-white via-slate-100 to-white bg-clip-text text-transparent">Gay</span>
             <span className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">Tradies</span>
           </h1>
-          <p className="text-slate-400 text-sm font-medium animate-slide-up">Verified tradesmen & the men who want them.</p>
+          <p className="text-slate-300 text-base font-semibold animate-slide-up drop-shadow-lg">Verified tradesmen & the men who want them.</p>
         </div>
 
         {/* Auth Form */}
-        <div className="bg-slate-800 rounded-2xl p-6 shadow-2xl animate-slide-up backdrop-blur-sm border border-slate-700">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 shadow-2xl animate-slide-up backdrop-blur-xl border-2 border-slate-700 hover:border-orange-500/30 transition-all duration-500">
           {verificationNoticeEmail && (
             <div className="mb-4 rounded-xl border border-orange-400/50 bg-orange-500/10 text-orange-100 p-4 text-sm flex flex-col gap-2 shadow-inner">
               <div className="font-bold text-orange-100 text-base">Check your inbox</div>
@@ -1400,19 +1424,19 @@ const LandingPage = ({ onLogin }) => {
               </div>
             </div>
           )}
-          <div className="flex bg-slate-700 rounded-lg p-1 mb-4 shadow-inner">
+          <div className="flex bg-slate-700/80 rounded-xl p-1.5 mb-6 shadow-inner backdrop-blur-sm border border-slate-600">
             <button
             onClick={() => { setIsSignUp(true); setError(''); setSuccessMessage(''); }}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-bold transition-all duration-300 ${
-              isSignUp ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105' : 'text-slate-400 hover:text-slate-200'
+            className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all duration-300 ${
+              isSignUp ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white shadow-xl scale-105 ring-2 ring-orange-400/50' : 'text-slate-300 hover:text-white hover:bg-slate-600/50'
             }`}
           >
             Sign Up
           </button>
           <button
             onClick={() => { setIsSignUp(false); setError(''); setSuccessMessage(''); }}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-bold transition-all duration-300 ${
-              !isSignUp ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105' : 'text-slate-400 hover:text-slate-200'
+            className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all duration-300 ${
+              !isSignUp ? 'bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white shadow-xl scale-105 ring-2 ring-orange-400/50' : 'text-slate-300 hover:text-white hover:bg-slate-600/50'
             }`}
           >
               Login
@@ -2243,49 +2267,69 @@ const Feed = ({ user, userProfile, activeTab, setActiveTab, onMessage, onRequest
                             setEditActiveChats(true);
                         }}
                     >
-                        {activeChats.slice(0, 8).map((p, idx) => (
-                            <button
-                              key={p.uid}
-                              onClick={() => openChat(p)}
-                              className={`relative w-14 h-14 rounded-full border-2 border-white shadow-md bg-slate-200 overflow-visible flex-shrink-0 ${idx === 0 ? 'mr-2' : 'mr-2 -ml-1'} animate-popIn ${editActiveChats ? 'animate-wiggle' : ''}`}
-                              style={{ WebkitTouchCallout: 'none' }}
-                              title={p.name || p.username}
-                            >
-                                      {p.primaryPhoto || p.photo ? (
-                                        <img
-                                            src={p.primaryPhoto || p.photo}
-                                            alt={p.name || p.username || 'Profile'}
-                                            className="w-full h-full object-cover rounded-full"
-                                            draggable={false}
-                                        />
-                                      ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold rounded-full">
-                                          {(p.name || p.username || 'T')[0]}
-                                        </div>
-                                      )}
-                                      {!editActiveChats && p.unread > 0 && (
-                                        <span className="absolute top-0.5 right-0.5 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border border-white shadow">
-                                          {p.unread > 9 ? '9+' : p.unread}
-                                        </span>
-                                      )}
-                                      {editActiveChats && (
-                                        <span
-                                          onClick={(e) => {
-                                              e.stopPropagation();
-                                              setActiveChatIds(prev => {
-                                                  const next = new Set(prev);
-                                                  next.delete(p.uid);
-                                                  return next;
-                                              });
-                                              setEditActiveChats(false);
-                                          }}
-                                          className="absolute top-0.5 left-0.5 bg-slate-900 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border border-white shadow cursor-pointer"
-                                        >
-                                          <X size={10} />
-                                        </span>
-                                      )}
-                            </button>
-                        ))}
+                        {activeChats.slice(0, 8).map((p, idx) => {
+                            const pending = profilePictureRequests?.some(req => req.userId === p.uid && req.status === 'pending');
+                            const shouldBlur = (p.blurPhotos || pending);
+                            return (
+                                <button
+                                  key={p.uid}
+                                  onClick={() => openChat(p)}
+                                  className={`relative w-14 h-14 rounded-full border-2 border-white shadow-md bg-slate-200 overflow-visible flex-shrink-0 ${idx === 0 ? 'mr-2' : 'mr-2 -ml-1'} animate-popIn ${editActiveChats ? 'animate-wiggle' : ''}`}
+                                  style={{ WebkitTouchCallout: 'none' }}
+                                  title={p.name || p.username}
+                                >
+                                          <div className="relative w-full h-full rounded-full p-[2px] bg-gradient-to-br from-slate-200 via-white to-slate-200 shadow-inner">
+                                            <div className="relative w-full h-full rounded-full overflow-hidden bg-slate-100">
+                                              {p.primaryPhoto || p.photo ? (
+                                                <>
+                                                  <img
+                                                      src={p.primaryPhoto || p.photo}
+                                                      alt={p.name || p.username || 'Profile'}
+                                                      className={`w-full h-full object-cover ${shouldBlur ? 'blur-md scale-105' : ''}`}
+                                                      draggable={false}
+                                                  />
+                                                  {shouldBlur && (
+                                                    <div className="absolute inset-0 bg-slate-900/15" />
+                                                  )}
+                                                </>
+                                              ) : (
+                                                <div className="w-full h-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold">
+                                                  {(p.name || p.username || 'T')[0]}
+                                                </div>
+                                              )}
+                                              {shouldBlur && (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                  <div className="bg-black/55 text-white rounded-full p-[5px] border border-white/30 shadow">
+                                                    <Lock size={12} />
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                          {!editActiveChats && p.unread > 0 && (
+                                            <span className="absolute -top-0.5 -right-1 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border border-white shadow">
+                                              {p.unread > 9 ? '9+' : p.unread}
+                                            </span>
+                                          )}
+                                          {editActiveChats && (
+                                            <span
+                                              onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setActiveChatIds(prev => {
+                                                      const next = new Set(prev);
+                                                      next.delete(p.uid);
+                                                      return next;
+                                                  });
+                                                  setEditActiveChats(false);
+                                              }}
+                                              className="absolute top-0.5 left-0.5 bg-slate-900 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border border-white shadow cursor-pointer"
+                                            >
+                                              <X size={10} />
+                                            </span>
+                                          )}
+                                </button>
+                            );
+                        })}
                         {activeChats.length === 0 && (
                             <span className="text-[11px] text-slate-400">No chats yet</span>
                         )}
@@ -2321,10 +2365,10 @@ const Feed = ({ user, userProfile, activeTab, setActiveTab, onMessage, onRequest
                               distanceKm={profile.distanceKm}
                               onOpenProfile={setSelectedSocialProfile}
                               isCurrentUser={profile.uid === user.uid}
-                              shouldBlur={profile.blurPhotos && profile.uid !== user.uid}
+                              shouldBlur={profile.blurPhotos}
                               hideDistance={profile.hideDistance}
-                              profilePictureRequests={profilePictureRequests}
-                              unreadCount={unreadMessagesPerUser[profile.uid] || 0}
+                             profilePictureRequests={profilePictureRequests}
+                             unreadCount={unreadMessagesPerUser[profile.uid] || 0}
                              
                           />
                       ))
@@ -2519,6 +2563,7 @@ const Feed = ({ user, userProfile, activeTab, setActiveTab, onMessage, onRequest
               ) : (
                  filteredHiringProfiles.map(p => {
                      const shouldUnblur = acceptedTradieIds.has(p.uid);
+                     const isPending = profilePictureRequests.some(req => req.userId === p.uid && req.status === 'pending');
                      return (
                          <TradieCard 
                              key={p.uid} 
@@ -2527,8 +2572,8 @@ const Feed = ({ user, userProfile, activeTab, setActiveTab, onMessage, onRequest
                              isTrusted={shouldUnblur}
                              onMessage={() => openChat(p)} 
                              onRequestJob={() => onRequestJob(p)}
-                            
-                            
+                             onOpenPublicProfile={onOpenPublicProfile}
+                             isPending={isPending}
                          />
                      );
                  })
@@ -2542,7 +2587,7 @@ const Feed = ({ user, userProfile, activeTab, setActiveTab, onMessage, onRequest
 };
 
 // Kept from GT1 for Hiring View
-const TradieCard = ({ profile, mode, isTrusted, onRequestJob }) => {
+const TradieCard = ({ profile, mode, isTrusted, onRequestJob, onOpenPublicProfile = () => {}, isPending = false }) => {
   // Use default cover photo based on role and email
   const coverPhotoUrl = getDefaultCoverPhoto(profile.email, profile.role);
   // Check if profile is admin - only check profile's email to show badge to all users
@@ -2574,20 +2619,29 @@ const TradieCard = ({ profile, mode, isTrusted, onRequestJob }) => {
                     profile={profile} 
                     size="xl" 
                     className="w-20 h-20" 
-                    blur={mode === 'hiring' && !isTrusted} 
+                    blur={profile.blurPhotos || isPending} 
                  />
-                 {mode === 'hiring' && !isTrusted && (
-                     <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-black/50 p-1 rounded-full text-white backdrop-blur-sm" title="Hire to unblur">
-                              <ShieldCheck size={16} />
-                          </div>
-                     </div>
+                 {(profile.blurPhotos || isPending) && (
+                    <div className="absolute -top-1 -right-1 bg-black/70 text-white rounded-full p-1 border border-white/30 shadow">
+                        <Lock size={12} />
+                    </div>
                  )}
              </div>
              
              <div className="flex gap-2 mb-1">
                  <Button variant="secondary" className="py-2 px-4 text-xs h-9 shadow-sm" onClick={onRequestJob}>
                     Request Job
+                 </Button>
+                 <Button
+                    variant="secondary"
+                    className="py-2 px-4 text-xs h-9 shadow-sm"
+                    onClick={() => {
+                        if (profile.username) {
+                            onOpenPublicProfile(profile.username);
+                        }
+                    }}
+                 >
+                    Profile
                  </Button>
              </div>
         </div>
@@ -2599,6 +2653,14 @@ const TradieCard = ({ profile, mode, isTrusted, onRequestJob }) => {
                     <h3 className="text-lg font-bold flex items-center gap-1 text-slate-900">
                         {profile.name || profile.username}{profile.hideAge ? '' : `, ${profile.age}`}
                     </h3>
+                    {profile.username && (
+                        <button
+                            onClick={() => onOpenPublicProfile(profile.username)}
+                            className="text-xs font-bold text-orange-600 hover:text-orange-700 underline"
+                        >
+                            @{profile.username}
+                        </button>
+                    )}
                     <div className="flex items-center text-xs text-slate-500 gap-1 mb-1">
                         <MapPin size={10} /> 
                         {profile.location}
@@ -2624,8 +2686,6 @@ const TradieCard = ({ profile, mode, isTrusted, onRequestJob }) => {
                     <Badge type="trade" text={profile.trade} />
                  </div>
             )}
-            
-            <p className="text-slate-600 text-sm line-clamp-2 mt-2">{profile.bio}</p>
         </div>
     </div>
   </div>

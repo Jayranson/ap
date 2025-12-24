@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { User, MessageCircle, MapPin, ShieldCheck, Star, CheckCircle, Briefcase, ArrowRight, X, DollarSign, Settings, LogOut, Send, Edit2, ClipboardList, AlertCircle, Camera, Image as ImageIcon, Navigation, Ban, Flag, Mail, ShoppingBag, ShoppingCart, Clock, Calendar, MoreHorizontal, Shield } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { User, MessageCircle, MapPin, ShieldCheck, Star, CheckCircle, Briefcase, ArrowRight, X, DollarSign, Settings, LogOut, Send, Edit2, ClipboardList, AlertCircle, Camera, Image as ImageIcon, Navigation, Ban, Flag, Mail, ShoppingBag, ShoppingCart, Clock, Calendar, MoreHorizontal, Shield, Lock } from 'lucide-react';
 import { sendEmailVerification } from 'firebase/auth';
 import { collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, deleteField, serverTimestamp, query, orderBy, where, increment, Timestamp, limit } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -139,42 +139,48 @@ const Shop = ({ user, showToast, onCartChange }) => {
     };
 
     return (
-        <div className="p-4">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold flex items-center gap-2 text-slate-900">
-                    <ShoppingBag className="text-orange-500"/> Shop
+        <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-extrabold flex items-center gap-3 text-slate-900 drop-shadow-sm">
+                    <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-2 rounded-xl shadow-lg">
+                        <ShoppingBag className="text-white" size={28}/>
+                    </div>
+                    Shop
                 </h2>
                 <button 
                     onClick={() => setShowCart(true)}
-                    className="relative p-2 bg-orange-500 text-white rounded-full shadow-lg hover:bg-orange-600 transition-colors"
+                    className="relative p-3 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white rounded-2xl shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300"
                 >
-                    <ShoppingCart size={20} />
+                    <ShoppingCart size={22} />
                     {cartCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg animate-bounce border-2 border-white">
                             {cartCount}
                         </span>
                     )}
                 </button>
             </div>
             
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-                <ShoppingCart className="text-orange-600 shrink-0 mt-0.5" size={20} />
-                <p className="text-xs text-orange-900 leading-relaxed font-medium">Official merchandise and tools. All proceeds support the platform and LGBT trade charities.</p>
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-2xl p-5 mb-6 flex items-start gap-3 shadow-lg">
+                <div className="bg-orange-500 p-2 rounded-lg">
+                    <ShoppingCart className="text-white shrink-0" size={20} />
+                </div>
+                <p className="text-sm text-orange-900 leading-relaxed font-semibold">Official merchandise and tools. All proceeds support the platform and LGBT trade charities.</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 animate-stagger">
+            <div className="grid grid-cols-2 gap-5 animate-stagger">
                 {products.map(p => (
-                    <div key={p.id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col group hover:shadow-xl hover:border-orange-300 transition-all duration-300 transform hover:-translate-y-1 active:scale-95">
-                        <div className="h-32 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center text-5xl group-hover:scale-110 transition-transform duration-500">
+                    <div key={p.id} className="bg-white rounded-2xl shadow-xl border-2 border-slate-200 overflow-hidden flex flex-col group hover:shadow-2xl hover:border-orange-400 transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 active:scale-95">
+                        <div className="h-36 bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 flex items-center justify-center text-6xl group-hover:scale-125 transition-transform duration-700 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent animate-shimmer"></div>
                             {p.image}
                         </div>
-                        <div className="p-3 flex-1 flex flex-col">
-                            <h3 className="font-bold text-sm mb-1 text-slate-800">{p.name}</h3>
-                            <p className="text-slate-500 text-xs mb-3 font-mono">£{p.price}.00</p>
+                        <div className="p-4 flex-1 flex flex-col">
+                            <h3 className="font-extrabold text-sm mb-2 text-slate-800">{p.name}</h3>
+                            <p className="text-orange-600 text-base mb-4 font-bold">£{p.price}.00</p>
                             <div className="mt-auto">
                                 <Button 
                                     variant="secondary" 
-                                    className="w-full py-2 text-xs h-8" 
+                                    className="w-full py-2.5 text-sm" 
                                     onClick={() => addToCart(p)}
                                 >
                                     Add to Cart
@@ -187,50 +193,50 @@ const Shop = ({ user, showToast, onCartChange }) => {
 
             {/* Cart Modal */}
             {showCart && (
-                <div className="fixed inset-0 bg-black/80 z-[100] flex items-end sm:items-center justify-center">
-                    <div className="bg-white w-full sm:w-[400px] h-[80vh] sm:h-auto sm:max-h-[80vh] sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl relative flex flex-col">
-                        <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-900 text-white">
-                            <h3 className="text-lg font-bold">Shopping Cart</h3>
-                            <button onClick={() => setShowCart(false)}>
-                                <X className="w-5 h-5" />
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center">
+                    <div className="bg-white w-full sm:w-[450px] h-[85vh] sm:h-auto sm:max-h-[85vh] sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl relative flex flex-col border-4 border-orange-200">
+                        <div className="p-5 border-b-2 border-slate-200 flex justify-between items-center bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white">
+                            <h3 className="text-xl font-extrabold">Shopping Cart</h3>
+                            <button onClick={() => setShowCart(false)} className="p-2 hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-110">
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto p-4">
+                        <div className="flex-1 overflow-y-auto p-5 bg-gradient-to-br from-slate-50 to-slate-100">
                             {cart.length === 0 ? (
-                                <div className="text-center py-10 text-slate-400">
-                                    <ShoppingCart size={48} className="mx-auto mb-2 opacity-50" />
-                                    <p>Your cart is empty</p>
+                                <div className="text-center py-16 text-slate-400">
+                                    <ShoppingCart size={64} className="mx-auto mb-4 opacity-30" />
+                                    <p className="text-lg font-semibold">Your cart is empty</p>
                                 </div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     {cart.map(item => (
-                                        <div key={item.id} className="bg-slate-50 rounded-lg p-3 flex items-center gap-3">
-                                            <div className="text-3xl">{item.image}</div>
+                                        <div key={item.id} className="bg-white rounded-2xl p-4 flex items-center gap-4 shadow-lg border-2 border-slate-200 hover:border-orange-400 transition-all duration-300">
+                                            <div className="text-4xl">{item.image}</div>
                                             <div className="flex-1">
-                                                <h4 className="font-bold text-sm">{item.name}</h4>
-                                                <p className="text-xs text-slate-500">£{item.price}.00</p>
+                                                <h4 className="font-bold text-base">{item.name}</h4>
+                                                <p className="text-sm text-orange-600 font-bold">£{item.price}.00</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <button 
                                                     onClick={() => updateQuantity(item.id, -1)}
-                                                    className="w-6 h-6 rounded bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold"
+                                                    className="w-8 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold text-lg transition-all duration-300 hover:scale-110"
                                                 >
                                                     -
                                                 </button>
-                                                <span className="w-8 text-center font-bold">{item.quantity}</span>
+                                                <span className="w-10 text-center font-bold text-lg">{item.quantity}</span>
                                                 <button 
                                                     onClick={() => updateQuantity(item.id, 1)}
-                                                    className="w-6 h-6 rounded bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold"
+                                                    className="w-8 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-bold text-lg transition-all duration-300 hover:scale-110"
                                                 >
                                                     +
                                                 </button>
                                             </div>
                                             <button 
                                                 onClick={() => removeFromCart(item.id)}
-                                                className="text-red-500 hover:text-red-700"
+                                                className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-all duration-300"
                                             >
-                                                <X size={18} />
+                                                <X size={20} />
                                             </button>
                                         </div>
                                     ))}
@@ -239,13 +245,13 @@ const Shop = ({ user, showToast, onCartChange }) => {
                         </div>
                         
                         {cart.length > 0 && (
-                            <div className="p-4 border-t border-slate-200 bg-white">
+                            <div className="p-5 border-t-2 border-slate-200 bg-white">
                                 <div className="flex justify-between items-center mb-4">
-                                    <span className="font-bold text-lg">Total:</span>
-                                    <span className="font-bold text-2xl text-orange-600">£{cartTotal}.00</span>
+                                    <span className="font-bold text-xl text-slate-700">Total:</span>
+                                    <span className="font-extrabold text-3xl text-orange-600">£{cartTotal}.00</span>
                                 </div>
-                                <Button onClick={handleCheckout} variant="secondary" className="w-full py-3">
-                                    Checkout
+                                <Button onClick={handleCheckout} variant="secondary" className="w-full py-4 text-lg">
+                                    Checkout Now
                                 </Button>
                             </div>
                         )}
@@ -271,7 +277,7 @@ const PostJobAdvert = ({ user, onCancel, onSuccess }) => {
   };
 
   return (
-    <div className="p-4 min-h-screen bg-white z-[60] absolute inset-0">
+    <div className="p-4 min-h-screen bg-slate-50">
        <button onClick={onCancel} className="mb-4 text-slate-500 flex items-center gap-1 font-bold"><ArrowRight className="rotate-180" size={16}/> Back</button>
        <h2 className="text-2xl font-bold mb-2">Post a Job Advert</h2>
        <p className="text-slate-500 mb-6 text-sm">Visible to verified tradies matching the category.</p>
@@ -303,10 +309,22 @@ const isEmailVerifiedForProfile = (user, profile) => {
 };
 
 const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
-  const [jobData, setJobData] = useState({ title: '', description: '', budget: '' });
+  const [jobData, setJobData] = useState({ title: '', description: '', estimatedHours: 2, urgency: 'standard' });
+  const [budgetError, setBudgetError] = useState('');
+  
+  // Calculate budget based on tradie's hourly rate
+  const tradieHourlyRate = parseFloat(tradie.rate) || 0;
+  const calculatedBudget = (tradieHourlyRate * jobData.estimatedHours).toFixed(2);
+  const minBudget = tradieHourlyRate > 0 ? tradieHourlyRate : 0;
 
   const submitJob = async () => {
     if(!jobData.title) return;
+    
+    // Validate estimated hours
+    if (jobData.estimatedHours < 1) {
+      setBudgetError('Please estimate at least 1 hour for the job');
+      return;
+    }
     
     // Check email verification - reload user first to get latest status
     if (user) {
@@ -332,6 +350,8 @@ const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
     
     await addDoc(collection(db, 'artifacts', getAppId(), 'public', 'data', 'jobs'), {
        ...jobData,
+       budget: `£${calculatedBudget}`,
+       hourlyRate: tradieHourlyRate,
        clientUid: user.uid,
        tradieUid: tradie.uid,
        tradieName: tradie.name || tradie.username,
@@ -343,16 +363,201 @@ const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
   };
 
   return (
-    <div className="p-4 min-h-screen bg-white z-[60] absolute inset-0">
-       <button onClick={onCancel} className="mb-4 text-slate-500 flex items-center gap-1 font-bold"><ArrowRight className="rotate-180" size={16}/> Back</button>
-       <h2 className="text-2xl font-bold mb-2">Hire {tradie.name || tradie.username}</h2>
-       <p className="text-slate-500 mb-6 text-sm">Send a direct request for work.</p>
-       
-       <Input label="Job Title" placeholder="e.g. Fix leaky tap" value={jobData.title} onChange={e => setJobData({...jobData, title: e.target.value})} />
-       <Input label="Description" textarea rows={4} placeholder="Describe the work needed..." value={jobData.description} onChange={e => setJobData({...jobData, description: e.target.value})} />
-       <Input label="Estimated Budget" placeholder="e.g. £100" value={jobData.budget} onChange={e => setJobData({...jobData, budget: e.target.value})} />
-       
-       <Button onClick={submitJob} variant="secondary" className="w-full mt-4">Send Request</Button>
+    <div className="px-4 py-6 pb-24 bg-gradient-to-b from-orange-50 via-white to-slate-50">
+      <div className="max-w-lg mx-auto">
+        {/* Header Card */}
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl shadow-2xl p-6 mb-6 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIxIDEuNzktNCA0LTRINDB2LTRoLTRjLTIuMjEgMC00IDEuNzktNCA0djRoNHYtNHoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-20"></div>
+          <div className="relative flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Briefcase className="text-white" size={28} strokeWidth={2.5} />
+                <h1 className="text-2xl font-black text-white">Request a Job</h1>
+              </div>
+              <p className="text-orange-100 text-sm font-medium">Hiring {tradie.name || tradie.username}</p>
+            </div>
+            <Button variant="ghost" onClick={onCancel} className="text-white hover:bg-white/20 px-3 py-2 rounded-xl">
+              <X size={20} strokeWidth={2.5} />
+            </Button>
+          </div>
+        </div>
+
+        {/* Info Alert */}
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-2xl p-4 mb-6 flex gap-3">
+          <AlertCircle className="text-orange-600 flex-shrink-0 mt-0.5" size={20} />
+          <div className="text-sm">
+            <p className="font-semibold text-orange-900 mb-1">Secure booking process</p>
+            <p className="text-orange-700">Budget is calculated from the tradie's hourly rate. Full details and your address are shared only after you've agreed and paid securely through the platform.</p>
+          </div>
+        </div>
+
+        {/* Main Form Card */}
+        <div className="bg-white rounded-3xl shadow-xl border-2 border-slate-200 p-6 space-y-6">
+          
+          {/* Job Title */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <ClipboardList className="text-orange-600" size={20} />
+              <label className="block text-sm font-bold text-slate-900">Job Title *</label>
+            </div>
+            <Input 
+              placeholder="e.g. Fix leaky kitchen tap" 
+              value={jobData.title} 
+              onChange={e => setJobData({...jobData, title: e.target.value})}
+              className="text-base"
+            />
+            <p className="text-xs text-slate-500 mt-1.5 ml-1">Be specific and clear about the work needed</p>
+          </div>
+
+          {/* Description */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Edit2 className="text-orange-600" size={20} />
+              <label className="block text-sm font-bold text-slate-900">Brief Description</label>
+            </div>
+            <Input 
+              textarea 
+              rows={3} 
+              placeholder="e.g. Kitchen tap is dripping and needs fixing"
+              value={jobData.description} 
+              onChange={e => setJobData({...jobData, description: e.target.value})}
+              className="text-base"
+              maxLength={200}
+            />
+            <div className="flex items-center justify-between mt-1.5 ml-1">
+              <p className="text-xs text-slate-500">Keep it brief - full details will be discussed after booking</p>
+              <p className="text-xs text-slate-400">{jobData.description.length}/200</p>
+            </div>
+          </div>
+
+          {/* Estimated Hours & Budget */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="text-orange-600" size={20} />
+              <label className="block text-sm font-bold text-slate-900">Estimated Job Duration</label>
+            </div>
+            
+            {tradieHourlyRate > 0 ? (
+              <>
+                <div className="mb-3">
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max="8" 
+                    step="0.5"
+                    value={jobData.estimatedHours} 
+                    onChange={e => { 
+                      setJobData({...jobData, estimatedHours: parseFloat(e.target.value)});
+                      setBudgetError('');
+                    }}
+                    className="w-full h-2 bg-orange-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                  />
+                  <div className="flex justify-between mt-1">
+                    <span className="text-xs text-slate-500">1 hour</span>
+                    <span className="text-xs font-bold text-orange-600">{jobData.estimatedHours} hour{jobData.estimatedHours !== 1 ? 's' : ''}</span>
+                    <span className="text-xs text-slate-500">8 hours</span>
+                  </div>
+                </div>
+                
+                {/* Budget Display */}
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-xs text-green-700 font-medium mb-1">Estimated Budget</p>
+                      <p className="text-2xl font-black text-green-900">£{calculatedBudget}</p>
+                    </div>
+                    <DollarSign className="text-green-600" size={32} strokeWidth={2.5} />
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-green-700">
+                    <div className="flex-1 bg-green-100 rounded-lg px-2 py-1.5">
+                      <span className="font-semibold">Rate:</span> £{tradieHourlyRate}/hr
+                    </div>
+                    <X size={12} className="text-green-500" />
+                    <div className="flex-1 bg-green-100 rounded-lg px-2 py-1.5 text-right">
+                      <span className="font-semibold">{jobData.estimatedHours}hrs</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-center">
+                <AlertCircle className="text-blue-600 mx-auto mb-2" size={24} />
+                <p className="text-sm text-blue-900 font-semibold">Price will be confirmed by the tradie</p>
+                <p className="text-xs text-blue-700 mt-1">This tradie hasn't set an hourly rate yet</p>
+              </div>
+            )}
+            {budgetError && <p className="text-xs text-red-600 mt-2 ml-1">{budgetError}</p>}
+          </div>
+
+          {/* Urgency */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="text-orange-600" size={20} />
+              <label className="block text-sm font-bold text-slate-900">When do you need this done?</label>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: 'urgent', label: 'Urgent', icon: AlertCircle, desc: 'ASAP' },
+                { value: 'standard', label: 'Standard', icon: Calendar, desc: '1-2 weeks' },
+                { value: 'flexible', label: 'Flexible', icon: Clock, desc: 'No rush' }
+              ].map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => setJobData({...jobData, urgency: option.value})}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    jobData.urgency === option.value 
+                      ? 'border-orange-500 bg-orange-50 shadow-md' 
+                      : 'border-slate-200 bg-white hover:border-orange-300'
+                  }`}
+                >
+                  <option.icon 
+                    size={20} 
+                    className={`mx-auto mb-1 ${jobData.urgency === option.value ? 'text-orange-600' : 'text-slate-400'}`}
+                  />
+                  <p className={`text-xs font-semibold ${jobData.urgency === option.value ? 'text-orange-900' : 'text-slate-700'}`}>
+                    {option.label}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">{option.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tips Card */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4">
+            <div className="flex items-start gap-2 mb-2">
+              <ShieldCheck className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
+              <p className="text-sm font-semibold text-blue-900">What happens next?</p>
+            </div>
+            <ul className="text-xs text-blue-800 space-y-1.5 ml-6">
+              <li className="list-disc">The tradie will review your request within 24-48 hours</li>
+              <li className="list-disc">You'll chat to finalize details and schedule</li>
+              <li className="list-disc">Pay securely once you've agreed on the work</li>
+              <li className="list-disc">Your address will only be shared after payment</li>
+            </ul>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
+            <Button 
+              variant="ghost" 
+              className="flex-1 py-3 text-base font-semibold border-2 border-slate-200 hover:border-slate-300 rounded-xl" 
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={submitJob} 
+              variant="secondary" 
+              className="flex-1 py-3 text-base font-bold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl rounded-xl transition-all"
+              disabled={!jobData.title.trim()}
+            >
+              <Send size={18} className="mr-2" />
+              Send Request
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -1929,6 +2134,7 @@ const WinksList = ({ user, onSelectProfile, onClose }) => {
     const [winks, setWinks] = useState([]);
     const [senderProfiles, setSenderProfiles] = useState({});
     const [sendingWink, setSendingWink] = useState(null);
+    const [profilePictureRequests, setProfilePictureRequests] = useState([]);
 
     useEffect(() => {
         if (!db || !user) return;
@@ -1964,6 +2170,17 @@ const WinksList = ({ user, onSelectProfile, onClose }) => {
         
         return () => unsub();
     }, [user, senderProfiles]);
+    
+    // Listen to profile picture verification requests for blur detection
+    useEffect(() => {
+        if (!db) return;
+        const q = query(collection(db, 'artifacts', getAppId(), 'private', 'data', 'profilePictureVerification'));
+        const unsub = onSnapshot(q, (snap) => {
+            const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setProfilePictureRequests(requests);
+        });
+        return () => unsub();
+    }, []);
     
     const handleSendWinkBack = async (recipientId) => {
         if (!user || !recipientId || sendingWink === recipientId) return;
@@ -2043,6 +2260,10 @@ const WinksList = ({ user, onSelectProfile, onClose }) => {
                         {winks.map(wink => {
                             const sender = senderProfiles[wink.senderId] || {};
                             
+                            // Calculate blur status for sender
+                            const isPending = profilePictureRequests.some(req => req.userId === wink.senderId && req.status === 'pending');
+                            const shouldBlurSender = sender?.blurPhotos || isPending;
+                            
                             return (
                                 <div 
                                     key={wink.id} 
@@ -2058,11 +2279,20 @@ const WinksList = ({ user, onSelectProfile, onClose }) => {
                                         }}
                                     >
                                         {sender.primaryPhoto || sender.photo ? (
-                                            <img 
-                                                src={sender.primaryPhoto || sender.photo} 
-                                                alt={sender.name || 'User'} 
-                                                className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md hover:border-orange-500 transition-all"
-                                            />
+                                            <div className="relative">
+                                                <img 
+                                                    src={sender.primaryPhoto || sender.photo} 
+                                                    alt={sender.name || 'User'} 
+                                                    className={`w-14 h-14 rounded-full object-cover border-2 shadow-md hover:border-orange-500 transition-all ${shouldBlurSender ? 'border-orange-500 blur-md scale-105' : 'border-white'}`}
+                                                />
+                                                {shouldBlurSender && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <div className="w-14 h-14 rounded-full border-2 border-orange-500 bg-orange-500/20 backdrop-blur-sm flex items-center justify-center">
+                                                            <Shield size={20} className="text-orange-600" strokeWidth={2.5} />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ) : (
                                             <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md hover:border-orange-500 transition-all">
                                                 <User size={28} className="text-white"/>
@@ -2116,6 +2346,7 @@ const ChatList = ({ user, onSelectProfile, onSelectChat, onClose }) => {
   const [partnerProfiles, setPartnerProfiles] = useState({});
   const [unreadCounts, setUnreadCounts] = useState({});
   const [isMarkingAll, setIsMarkingAll] = useState(false);
+  const [profilePictureRequests, setProfilePictureRequests] = useState([]);
 
   useEffect(() => {
       if (!db) return;
@@ -2164,6 +2395,17 @@ const ChatList = ({ user, onSelectProfile, onSelectChat, onClose }) => {
           unsubUnread();
       };
   }, [user, partnerProfiles]);
+
+  // Listen to profile picture verification requests for blur detection
+  useEffect(() => {
+      if (!db) return;
+      const q = query(collection(db, 'artifacts', getAppId(), 'private', 'data', 'profilePictureVerification'));
+      const unsub = onSnapshot(q, (snap) => {
+          const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          setProfilePictureRequests(requests);
+      });
+      return () => unsub();
+  }, []);
 
   const handleMarkAllRead = async () => {
       if (!db || !user) return;
@@ -2236,6 +2478,10 @@ const ChatList = ({ user, onSelectProfile, onSelectChat, onClose }) => {
                          const partner = partnerProfiles[partnerId] || {};
                          const unreadCount = unreadCounts[conv.id] || 0;
                          const hasUnread = unreadCount > 0;
+                         
+                         // Calculate blur status for partner
+                         const isPending = profilePictureRequests.some(req => req.userId === partnerId && req.status === 'pending');
+                         const shouldBlurPartner = partner?.blurPhotos || isPending;
 
                          return (
                              <div 
@@ -2252,17 +2498,31 @@ const ChatList = ({ user, onSelectProfile, onSelectChat, onClose }) => {
                                          }
                                      }}
                                  >
-                                     {partner.primaryPhoto || partner.photo ? (
-                                         <img 
-                                             src={partner.primaryPhoto || partner.photo} 
-                                             alt={partner.name || 'User'} 
-                                             className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md hover:border-orange-500 transition-all"
-                                         />
-                                     ) : (
-                                         <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md hover:border-orange-500 transition-all">
-                                             <User size={28} className="text-white"/>
-                                         </div>
-                                     )}
+                                    {partner.primaryPhoto || partner.photo ? (
+                                      <div className="relative w-14 h-14">
+                                        <div className="w-full h-full rounded-full p-[2px] bg-gradient-to-br from-slate-200 via-white to-slate-200 shadow-inner">
+                                          <div className="relative w-full h-full rounded-full overflow-hidden bg-slate-100">
+                                            <img
+                                              src={partner.primaryPhoto || partner.photo}
+                                              alt={partner.name || 'User'}
+                                              className={`w-full h-full object-cover ${shouldBlurPartner ? 'blur-md scale-105' : ''}`}
+                                            />
+                                            {shouldBlurPartner && <div className="absolute inset-0 bg-slate-900/15" />}
+                                          </div>
+                                        </div>
+                                        {shouldBlurPartner && (
+                                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div className="bg-black/55 text-white rounded-full p-[6px] border border-white/30 shadow">
+                                              <Lock size={14} />
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md hover:border-orange-500 transition-all">
+                                        <User size={28} className="text-white"/>
+                                      </div>
+                                    )}
                                      {hasUnread && (
                                          <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
                                              {unreadCount > 9 ? '9+' : unreadCount}
@@ -2304,9 +2564,10 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
     const [otherReceipts, setOtherReceipts] = useState({ lastDeliveredAt: null, lastReadAt: null });
     const receiptWriteRef = useRef({ delivered: 0, read: 0 });
     const [hasWorkConsent, setHasWorkConsent] = useState(partner?.role !== 'tradie');
-    const [partnerProfile, setPartnerProfile] = useState(partner);
+    const [partnerProfile, setPartnerProfile] = useState(null);
     const [showSafetyToast, setShowSafetyToast] = useState(partner?.role === 'tradie');
     const [violationToast, setViolationToast] = useState('');
+    const [profilePictureRequests, setProfilePictureRequests] = useState([]);
     const conversationId = [user.uid, partner.uid].sort().join('_'); 
     const scrollRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -2317,6 +2578,18 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportType, setReportType] = useState('harassment');
     const [reportDetails, setReportDetails] = useState('');
+    
+    // Calculate blur status for partner - recalculates when partnerProfile or profilePictureRequests change
+    const isPending = useMemo(() => {
+        const pending = profilePictureRequests.some(req => req.userId === partner?.uid && req.status === 'pending');
+        return pending;
+    }, [profilePictureRequests, partner?.uid]);
+    
+    const shouldBlurPartner = useMemo(() => {
+        const hasBlurPhotos = effectivePartner?.blurPhotos === true || partner?.blurPhotos === true;
+        const isUnverified = effectivePartner?.verified === false || partner?.verified === false;
+        return hasBlurPhotos || isPending || isUnverified;
+    }, [effectivePartner?.blurPhotos, effectivePartner?.verified, partner?.blurPhotos, partner?.verified, isPending]);
     const handleReportSubmit = async () => {
         try {
             const recent = messages.slice(-10).map(m => ({
@@ -2398,28 +2671,46 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
         writeReceipt('read', latest, latestMs);
     }, [messages, writeReceipt]);
 
-    // Fetch partner profile to ensure we know their role/trade
+    // Fetch profile picture verification requests for blur detection
     useEffect(() => {
+        if (!db) return;
+        const q = query(collection(db, 'artifacts', getAppId(), 'private', 'data', 'profilePictureVerification'));
+        const unsub = onSnapshot(q, (snap) => {
+            const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setProfilePictureRequests(requests);
+        });
+        return () => unsub();
+    }, []);
+
+    // Fetch partner profile to ensure we have full data including blurPhotos
+    useEffect(() => {
+        console.log('[ChatRoom] Component mounted/updated, partner.uid:', partner?.uid);
         const loadPartner = async () => {
-            if (!db || !partner?.uid) return;
+            if (!db || !partner?.uid) {
+                console.log('[ChatRoom] Skipping loadPartner - no db or partner.uid');
+                return;
+            }
+            console.log('[ChatRoom] Loading partner profile from Firestore for:', partner.uid);
             try {
                 const profileDoc = await getDoc(doc(db, 'artifacts', getAppId(), 'public', 'data', 'profiles', partner.uid));
                 if (profileDoc.exists()) {
                     const data = { uid: partner.uid, ...profileDoc.data() };
+                    console.log('[ChatRoom] Partner profile loaded:', data.name, 'blurPhotos:', data.blurPhotos);
                     setPartnerProfile(data);
                     if (data.role === 'tradie') {
                         setHasWorkConsent(false);
                         setShowSafetyToast(true);
                     }
+                } else {
+                    console.log('[ChatRoom] Partner profile document does not exist');
                 }
             } catch (error) {
-                console.error('Failed to load partner profile for chat:', error);
+                console.error('[ChatRoom] Failed to load partner profile for chat:', error);
             }
         };
-        if (!partnerProfile?.role) {
-            loadPartner();
-        }
-    }, [partner, partnerProfile]);
+        // Always load to ensure we have blurPhotos field
+        loadPartner();
+    }, [partner?.uid]);
 
     // Listen for conversation meta (blocked, violations)
     useEffect(() => {
@@ -2629,12 +2920,25 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
                     title="View profile"
                 >
                     <div className="flex-shrink-0">
-                        {partner.photo ? (
-                            <img 
-                                src={partner.photo} 
-                                alt={partner.name || partner.username} 
-                                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md"
-                            />
+                        {partnerPhoto ? (
+                            <div className="relative w-11 h-11 rounded-full p-[2px] bg-gradient-to-br from-slate-200 via-white to-slate-200 shadow-inner border-2 border-white">
+                                <div className="relative w-full h-full rounded-full overflow-hidden bg-slate-100">
+                                    <img 
+                                        src={partnerPhoto} 
+                                        alt={effectivePartner?.name || effectivePartner?.username || partner.name || partner.username} 
+                                        className="w-full h-full object-cover"
+                                        style={shouldBlurPartner ? { filter: 'blur(12px)', WebkitFilter: 'blur(12px)', opacity: 0.45, transform: 'scale(1.08)' } : {}}
+                                    />
+                                    {shouldBlurPartner && <div className="absolute inset-0 bg-slate-900/15" />}
+                                    {shouldBlurPartner && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="bg-black/55 text-white rounded-full p-[5px] border border-white/30 shadow">
+                                                {partnerUnverified ? <Shield size={12} /> : <Lock size={12} />}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         ) : (
                             <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 rounded-full border-2 border-white shadow-md">
                                 <User size={20} className="text-white"/>
@@ -2810,12 +3114,25 @@ const ChatRoom = ({ user, partner, onBack, userProfile }) => {
                         >
                             {!isMine && !isSystem && (
                                 <div className="flex-shrink-0">
-                                    {partner.photo ? (
-                                        <img 
-                                            src={partner.photo} 
-                                            alt={partner.name || partner.username} 
-                                            className="w-8 h-8 rounded-full object-cover border border-white shadow-sm"
-                                        />
+                                    {partnerPhoto ? (
+                                        <div className="relative w-9 h-9 rounded-full p-[1.5px] bg-gradient-to-br from-slate-200 via-white to-slate-200 shadow-inner border border-white">
+                                            <div className="relative w-full h-full rounded-full overflow-hidden bg-slate-100">
+                                                <img 
+                                                    src={partnerPhoto} 
+                                                    alt={effectivePartner?.name || effectivePartner?.username || partner.name || partner.username} 
+                                                    className="w-full h-full object-cover"
+                                                    style={shouldBlurPartner ? { filter: 'blur(12px)', WebkitFilter: 'blur(12px)', opacity: 0.45, transform: 'scale(1.08)' } : {}}
+                                                />
+                                                {shouldBlurPartner && <div className="absolute inset-0 bg-slate-900/15" />}
+                                                {shouldBlurPartner && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <div className="bg-black/55 text-white rounded-full p-[4px] border border-white/30 shadow">
+                                                            {partnerUnverified ? <Shield size={11} /> : <Lock size={11} />}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     ) : (
                                         <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-slate-300 to-slate-400 rounded-full border border-white shadow-sm">
                                             <User size={14} className="text-white"/>
@@ -3766,4 +4083,3 @@ export {
   UserProfile, 
   ProfileLink 
 };
-
