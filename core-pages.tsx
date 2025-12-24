@@ -309,10 +309,22 @@ const isEmailVerifiedForProfile = (user, profile) => {
 };
 
 const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
-  const [jobData, setJobData] = useState({ title: '', description: '', budget: '', urgency: 'standard' });
+  const [jobData, setJobData] = useState({ title: '', description: '', estimatedHours: 2, urgency: 'standard' });
+  const [budgetError, setBudgetError] = useState('');
+  
+  // Calculate budget based on tradie's hourly rate
+  const tradieHourlyRate = parseFloat(tradie.rate) || 0;
+  const calculatedBudget = (tradieHourlyRate * jobData.estimatedHours).toFixed(2);
+  const minBudget = tradieHourlyRate > 0 ? tradieHourlyRate : 0;
 
   const submitJob = async () => {
     if(!jobData.title) return;
+    
+    // Validate estimated hours
+    if (jobData.estimatedHours < 1) {
+      setBudgetError('Please estimate at least 1 hour for the job');
+      return;
+    }
     
     // Check email verification - reload user first to get latest status
     if (user) {
@@ -338,6 +350,8 @@ const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
     
     await addDoc(collection(db, 'artifacts', getAppId(), 'public', 'data', 'jobs'), {
        ...jobData,
+       budget: `£${calculatedBudget}`,
+       hourlyRate: tradieHourlyRate,
        clientUid: user.uid,
        tradieUid: tradie.uid,
        tradieName: tradie.name || tradie.username,
@@ -369,11 +383,11 @@ const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
         </div>
 
         {/* Info Alert */}
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-6 flex gap-3">
-          <AlertCircle className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-2xl p-4 mb-6 flex gap-3">
+          <AlertCircle className="text-orange-600 flex-shrink-0 mt-0.5" size={20} />
           <div className="text-sm">
-            <p className="font-semibold text-blue-900 mb-1">How it works</p>
-            <p className="text-blue-700">Your request will be sent directly to {tradie.name || 'the tradie'}. They'll review and respond within 24-48 hours.</p>
+            <p className="font-semibold text-orange-900 mb-1">Secure booking process</p>
+            <p className="text-orange-700">Budget is calculated from the tradie's hourly rate. Full details and your address are shared only after you've agreed and paid securely through the platform.</p>
           </div>
         </div>
 
@@ -399,42 +413,87 @@ const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Edit2 className="text-orange-600" size={20} />
-              <label className="block text-sm font-bold text-slate-900">Job Description</label>
+              <label className="block text-sm font-bold text-slate-900">Brief Description</label>
             </div>
             <Input 
               textarea 
-              rows={5} 
-              placeholder="Describe the work in detail...&#10;&#10;Example: Kitchen tap is dripping constantly. Need a plumber to replace the washer or the entire tap if necessary. Access is easy, tap is standard size."
+              rows={3} 
+              placeholder="e.g. Kitchen tap is dripping and needs fixing"
               value={jobData.description} 
               onChange={e => setJobData({...jobData, description: e.target.value})}
               className="text-base"
+              maxLength={200}
             />
             <div className="flex items-center justify-between mt-1.5 ml-1">
-              <p className="text-xs text-slate-500">Include details about location, access, and materials</p>
-              <p className="text-xs text-slate-400">{jobData.description.length} chars</p>
+              <p className="text-xs text-slate-500">Keep it brief - full details will be discussed after booking</p>
+              <p className="text-xs text-slate-400">{jobData.description.length}/200</p>
             </div>
           </div>
 
-          {/* Budget */}
+          {/* Estimated Hours & Budget */}
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="text-orange-600" size={20} />
-              <label className="block text-sm font-bold text-slate-900">Estimated Budget</label>
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="text-orange-600" size={20} />
+              <label className="block text-sm font-bold text-slate-900">Estimated Job Duration</label>
             </div>
-            <Input 
-              placeholder="e.g. £150 or £100-£200" 
-              value={jobData.budget} 
-              onChange={e => setJobData({...jobData, budget: e.target.value})}
-              className="text-base"
-            />
-            <p className="text-xs text-slate-500 mt-1.5 ml-1">Provide a range if unsure. The tradie will give you a quote.</p>
+            
+            {tradieHourlyRate > 0 ? (
+              <>
+                <div className="mb-3">
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max="8" 
+                    step="0.5"
+                    value={jobData.estimatedHours} 
+                    onChange={e => { 
+                      setJobData({...jobData, estimatedHours: parseFloat(e.target.value)});
+                      setBudgetError('');
+                    }}
+                    className="w-full h-2 bg-orange-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                  />
+                  <div className="flex justify-between mt-1">
+                    <span className="text-xs text-slate-500">1 hour</span>
+                    <span className="text-xs font-bold text-orange-600">{jobData.estimatedHours} hour{jobData.estimatedHours !== 1 ? 's' : ''}</span>
+                    <span className="text-xs text-slate-500">8 hours</span>
+                  </div>
+                </div>
+                
+                {/* Budget Display */}
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-xs text-green-700 font-medium mb-1">Estimated Budget</p>
+                      <p className="text-2xl font-black text-green-900">£{calculatedBudget}</p>
+                    </div>
+                    <DollarSign className="text-green-600" size={32} strokeWidth={2.5} />
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-green-700">
+                    <div className="flex-1 bg-green-100 rounded-lg px-2 py-1.5">
+                      <span className="font-semibold">Rate:</span> £{tradieHourlyRate}/hr
+                    </div>
+                    <X size={12} className="text-green-500" />
+                    <div className="flex-1 bg-green-100 rounded-lg px-2 py-1.5 text-right">
+                      <span className="font-semibold">{jobData.estimatedHours}hrs</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-center">
+                <AlertCircle className="text-blue-600 mx-auto mb-2" size={24} />
+                <p className="text-sm text-blue-900 font-semibold">Price will be confirmed by the tradie</p>
+                <p className="text-xs text-blue-700 mt-1">This tradie hasn't set an hourly rate yet</p>
+              </div>
+            )}
+            {budgetError && <p className="text-xs text-red-600 mt-2 ml-1">{budgetError}</p>}
           </div>
 
           {/* Urgency */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Clock className="text-orange-600" size={20} />
-              <label className="block text-sm font-bold text-slate-900">Urgency</label>
+              <Calendar className="text-orange-600" size={20} />
+              <label className="block text-sm font-bold text-slate-900">When do you need this done?</label>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {[
@@ -465,16 +524,16 @@ const JobRequestForm = ({ user, tradie, onCancel, onSuccess, userProfile }) => {
           </div>
 
           {/* Tips Card */}
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-4">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4">
             <div className="flex items-start gap-2 mb-2">
-              <ShieldCheck className="text-green-600 flex-shrink-0 mt-0.5" size={18} />
-              <p className="text-sm font-semibold text-green-900">Tips for a great request</p>
+              <ShieldCheck className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
+              <p className="text-sm font-semibold text-blue-900">What happens next?</p>
             </div>
-            <ul className="text-xs text-green-800 space-y-1 ml-6">
-              <li className="list-disc">Include photos if you have them (you can send via chat)</li>
-              <li className="list-disc">Mention any access restrictions or parking</li>
-              <li className="list-disc">Be realistic with budget estimates</li>
-              <li className="list-disc">Specify your preferred timeframe</li>
+            <ul className="text-xs text-blue-800 space-y-1.5 ml-6">
+              <li className="list-disc">The tradie will review your request within 24-48 hours</li>
+              <li className="list-disc">You'll chat to finalize details and schedule</li>
+              <li className="list-disc">Pay securely once you've agreed on the work</li>
+              <li className="list-disc">Your address will only be shared after payment</li>
             </ul>
           </div>
 
